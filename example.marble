@@ -1,0 +1,16 @@
+// Name of the person to greet
+const name = "Maddie Schipper";
+
+// The greeting message
+const greeting = "Hello {}";
+
+let message = std::format(greeting, name);
+
+if not message.has_suffix("!") {
+  message = std::format("{}!", message);
+}
+
+const STDOUT = os::file_ptr(1);
+
+// Write the message to the standard output file
+std::write_str(STDOUT, message);
