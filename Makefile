@@ -12,3 +12,7 @@ marble: ${GO_SOURCE_FILES}
 .PHONY: run-repl
 run-repl: marble
 	./marble repl
+
+.PHONY: debugger
+debugger: marble
+	dlv exec ./marble parse ./example.marble

@@ -16,6 +16,8 @@ const (
 	If       Kind = "IF"
 	Else     Kind = "ELSE"
 	Not      Kind = "NOT"
+	Mutate   Kind = "MUTATE"
+	Do       Kind = "DO"
 
 	// Identifiers & Literals
 	Identifier   Kind = "IDENT"
@@ -54,10 +56,14 @@ const (
 	Tilde     Kind = "TILDE"
 	Carrot    Kind = "CARROT"
 	Percent   Kind = "PERCENT"
+	Period    Kind = "PERIOD"
 
 	EndOfInput Kind = "EOF"
 	Invalid    Kind = "INVALID"
 )
+
+// Defines a shared illegal token
+var ILLEGAL = Token{Kind: Invalid}
 
 type Token struct {
 	Kind     Kind
@@ -67,6 +73,10 @@ type Token struct {
 
 func (t Token) Is(k Kind) bool {
 	return t.Kind == k
+}
+
+func (t Token) IsNot(k Kind) bool {
+	return !t.Is(k)
 }
 
 func (t Token) String() string {

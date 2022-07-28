@@ -6,16 +6,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/maddiesch/marble/pkg/lexer"
-	"github.com/maddiesch/marble/pkg/token"
+	"github.com/maddiesch/marble/pkg/parser"
 )
 
 var (
 	Prompt      = "> "
 	ExitCommand = "_exit"
+	Indent      = "\t"
 )
+
+var Builtin = map[string]func() bool{}
 
 func Run(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
@@ -45,6 +49,10 @@ func processLine(scanner *bufio.Scanner, buf *bytes.Buffer) bool {
 		return false
 	}
 
+	if fn, ok := Builtin[line]; ok {
+		return fn()
+	}
+
 	l, err := lexer.New("[REPL]", strings.NewReader(line))
 	if err != nil {
 		buf.WriteString("ERR: ")
@@ -52,12 +60,27 @@ func processLine(scanner *bufio.Scanner, buf *bytes.Buffer) bool {
 		return true
 	}
 
-	for {
-		t := l.NextToken()
-		if t.Kind == token.EndOfInput {
-			return true
-		}
+	p := parser.New(l)
+	prog := p.Run()
 
-		json.NewEncoder(buf).Encode(t)
+	if err := p.Err(); err != nil {
+		if parseErr, ok := err.(*parser.ParseError); ok {
+			fmt.Fprintf(os.Stderr, "Parse Errors: %d\n", len(parseErr.Children))
+			for _, err := range parseErr.Children {
+				fmt.Fprintln(os.Stderr, err.Error())
+			}
+		} else {
+			fmt.Fprintf(os.Stderr, "%+v", err)
+		}
+		return true
 	}
+
+	encoder := json.NewEncoder(os.Stdout)
+	encoder.SetIndent("", "\t")
+
+	for _, stmt := range prog.StatementList {
+		encoder.Encode(stmt)
+	}
+
+	return true
 }

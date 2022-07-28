@@ -6,8 +6,8 @@ const greeting = "Hello {}";
 
 let message = std::format(greeting, name);
 
-if not message.has_suffix("!") {
-  message = std::format("{}!", message);
+if (not message.has_suffix("!")) {
+  mut message = std::format("{}!", message)
 }
 
 const STDOUT = os::file_ptr(1);

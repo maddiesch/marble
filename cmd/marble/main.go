@@ -19,5 +19,6 @@ var App = cli.App{
 	Commands: []*cli.Command{
 		CommandRepl,
 		CommandTokenize,
+		CommandParse,
 	},
 }

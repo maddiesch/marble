@@ -123,6 +123,8 @@ func (f *FileLexer) init() (*FileLexer, error) {
 	f.RegisterKeyword("nil", token.LiteralNull)
 	f.RegisterKeyword("false", token.LiteralFalse)
 	f.RegisterKeyword("true", token.LiteralTrue)
+	f.RegisterKeyword("mut", token.Mutate)
+	f.RegisterKeyword("do", token.Do)
 
 	f.RegisterSingleRuneOperator('=', token.Assign)
 	f.RegisterSingleRuneOperator('+', token.Plus)
@@ -150,6 +152,7 @@ func (f *FileLexer) init() (*FileLexer, error) {
 	f.RegisterSingleRuneOperator('~', token.Tilde)
 	f.RegisterSingleRuneOperator('^', token.Carrot)
 	f.RegisterSingleRuneOperator('%', token.Percent)
+	f.RegisterSingleRuneOperator('.', token.Period)
 
 	return f, nil
 }
