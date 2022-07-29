@@ -50,18 +50,18 @@ func TestParserRun(t *testing.T) {
 		}{
 			{"true", "Bool(true)"},
 			{"false", "Bool(false)"},
-			{"3 > 5 == false", "((Int(3) > Int(5)) = Bool(false))"},
-			{"3 < 5 == true", "((Int(3) < Int(5)) = Bool(true))"},
+			{"3 > 5 == false", "((Int(3) > Int(5)) == Bool(false))"},
+			{"3 < 5 == true", "((Int(3) < Int(5)) == Bool(true))"},
 			{"not foo", "!(ID(foo))"},
 			{"!foo", "!(ID(foo))"},
 			{"-a * b", "(-(ID(a)) * ID(b))"},
 			{"5 < 5", "(Int(5) < Int(5))"},
 			{"a + b * c + 3.5 / e - f", "(((ID(a) + (ID(b) * ID(c))) + (Float(3.500000) / ID(e))) - ID(f))"},
-			{"3 + 4 * 5 == 3 * 1 + 4 * 5", "((Int(3) + (Int(4) * Int(5))) = ((Int(3) * Int(1)) + (Int(4) * Int(5))))"},
+			{"3 + 4 * 5 == 3 * 1 + 4 * 5", "((Int(3) + (Int(4) * Int(5))) == ((Int(3) * Int(1)) + (Int(4) * Int(5))))"},
 			{"1 + (2 + 3) + 4", "((Int(1) + (Int(2) + Int(3))) + Int(4))"},
 			{"(5 + 5) * 2", "((Int(5) + Int(5)) * Int(2))"},
 			{"-(5 + 5)", "-((Int(5) + Int(5)))"},
-			{"!(true == true)", "!((Bool(true) = Bool(true)))"},
+			{"!(true == true)", "!((Bool(true) == Bool(true)))"},
 		}
 
 		for _, tc := range tests {
