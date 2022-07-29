@@ -26,7 +26,7 @@ func (o *Boolean) GoValue() any {
 	return o.Value
 }
 
-func (o *Boolean) Cast(t ObjectType) (Object, bool) {
+func (o *Boolean) CoerceTo(t ObjectType) (Object, bool) {
 	if t == o.Type() {
 		return o, true
 	}

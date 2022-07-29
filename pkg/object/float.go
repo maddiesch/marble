@@ -3,7 +3,6 @@ package object
 import (
 	"fmt"
 
-	"github.com/maddiesch/marble/pkg/object/math"
 	"golang.org/x/exp/constraints"
 )
 
@@ -31,37 +30,21 @@ func (o Floating) GoValue() any {
 	return o.Value
 }
 
-func (o *Floating) Cast(t ObjectType) (Object, bool) {
+func (o *Floating) CoerceTo(t ObjectType) (Object, bool) {
 	switch t {
 	case INTEGER:
-		return &Integer{Value: int64(o.Value)}, true
+		return Int(int64(o.Value)), true
 	case FLOAT:
 		return o, true
 	case BOOLEAN:
-		return CastChain(o, INTEGER, BOOLEAN)
+		o, err := ChainCoerceTo(o, INTEGER, BOOLEAN)
+		if err != nil {
+			return nil, false
+		}
+		return o, true
 	default:
 		return &Void{}, false
 	}
 }
-
-// MARK: Arithmetic
-
-func (o *Floating) Add(v math.ArithmeticAddition) (math.ArithmeticAddition, bool) {
-	return nil, false
-}
-
-func (o *Floating) Sub(v math.ArithmeticSubtraction) (math.ArithmeticSubtraction, bool) {
-	return nil, false
-}
-
-func (o *Floating) Multiply(v math.ArithmeticMultiplication) (math.ArithmeticMultiplication, bool) {
-	return nil, false
-}
-
-func (o *Floating) Divide(v math.ArithmeticDivision) (math.ArithmeticDivision, bool) {
-	return nil, false
-}
-
-var _ math.ArithmeticBasic = (*Floating)(nil)
 
 var _ Object = (*Floating)(nil)

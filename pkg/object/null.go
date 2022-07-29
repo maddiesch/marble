@@ -20,7 +20,7 @@ func (o *Null) GoValue() any {
 	return nil
 }
 
-func (o *Null) Cast(t ObjectType) (Object, bool) {
+func (o *Null) CoerceTo(t ObjectType) (Object, bool) {
 	if t == o.Type() {
 		return o, true
 	}

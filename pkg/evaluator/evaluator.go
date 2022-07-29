@@ -4,8 +4,9 @@ import (
 	"fmt"
 
 	"github.com/maddiesch/marble/pkg/ast"
+	"github.com/maddiesch/marble/pkg/evaluator/runtime"
 	"github.com/maddiesch/marble/pkg/object"
-	"golang.org/x/exp/constraints"
+	"github.com/maddiesch/marble/pkg/object/math"
 )
 
 func Evaluate(node ast.Node) (object.Object, error) {
@@ -45,34 +46,19 @@ func _evalInfixExpression(node *ast.InfixExpression) (object.Object, error) {
 }
 
 func _evalInfixOperator(n *ast.InfixExpression, lhs, rhs object.Object) (object.Object, error) {
-	switch n.Operator {
-	case "+", "-", "*", "/":
-		return _evalBasicArithmetic(n, lhs, rhs)
-	default:
-		return nil, IllegalExpression{Node: n, Message: "Illegal infix operator"}
-	}
-}
-
-func _evalBasicArithmetic(n *ast.InfixExpression, lhs, rhs object.Object) (object.Object, error) {
-	cast, ok := rhs.Cast(lhs.Type())
-	if !ok {
-		return nil, ObjectCastError{
-			Node:   n,
-			Object: rhs,
-			Target: lhs.Type(),
+	if op, ok := math.OperatorFor(n.Operator); ok {
+		if left, ok := lhs.(object.BasicArithmeticEvaluator); ok {
+			return left.PerformBasicArithmeticOperation(op, rhs)
 		}
 	}
-
-	switch lhs := lhs.(type) {
-	case *object.Integer:
-		rhs := cast.(*object.Integer)
-		return &object.Integer{Value: _execMathOp(n.Operator, lhs.Value, rhs.Value)}, nil
-	case *object.Floating:
-		rhs := cast.(*object.Floating)
-		return &object.Floating{Value: _execMathOp(n.Operator, lhs.Value, rhs.Value)}, nil
-	default:
-		return nil, IllegalExpression{Node: n, Message: "Unable to perform arithmetic operation"}
-	}
+	return nil, runtime.NewError(
+		runtime.TypeError,
+		"Unable to perform infix operation for given types",
+		runtime.ErrorValue("Operator", n.Operator),
+		runtime.ErrorValue("Left", lhs),
+		runtime.ErrorValue("Right", rhs),
+		runtime.ErrorValue("Location", n.SourceToken().Location),
+	)
 }
 
 func _evalPrefixExpression(node *ast.PrefixExpression) (object.Object, error) {
@@ -122,34 +108,4 @@ func _evalStatementList(list []ast.Statement) (object.Object, error) {
 	}
 
 	return result, nil
-}
-
-func _execMathOp[V constraints.Integer | constraints.Float](o string, l, r V) V {
-	switch o {
-	case "+":
-		return l + r
-	case "-":
-		return l - r
-	case "/":
-		return l / r
-	case "*":
-		return l * r
-	default:
-		panic("illegal math operator " + o)
-	}
-}
-
-func _execValueComparable[T constraints.Ordered](o string, l, r T) bool {
-	switch o {
-	case "<":
-		return l < r
-	case "<=":
-		return l <= r
-	case ">":
-		return l > r
-	case ">=":
-		return l >= r
-	default:
-		panic("illegal comparision operator " + o)
-	}
 }

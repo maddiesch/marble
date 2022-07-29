@@ -1,7 +1,9 @@
 package object
 
+import "github.com/maddiesch/marble/pkg/object/math"
+
 type Object interface {
-	Castable
+	Coercible
 
 	Type() ObjectType
 
@@ -10,18 +12,6 @@ type Object interface {
 	Description() string
 }
 
-type Castable interface {
-	Cast(ObjectType) (Object, bool)
-}
-
-func CastChain(o Object, t ...ObjectType) (Object, bool) {
-	r := o
-	var ok bool
-	for _, t := range t {
-		r, ok = r.Cast(t)
-		if !ok {
-			return nil, false
-		}
-	}
-	return r, true
+type BasicArithmeticEvaluator interface {
+	PerformBasicArithmeticOperation(math.ArithmeticOperator, Object) (Object, error)
 }

@@ -30,9 +30,9 @@ func TestObjectType(t *testing.T) {
 func TestChainCast(t *testing.T) {
 	f := &object.Floating{Value: 1}
 
-	b, ok := object.CastChain(f, object.INTEGER, object.BOOLEAN)
+	b, err := object.ChainCoerceTo(f, object.INTEGER, object.BOOLEAN)
 
-	if assert.True(t, ok) {
+	if assert.NoError(t, err) {
 		assert.Equal(t, true, b.(*object.Boolean).Value)
 	}
 }

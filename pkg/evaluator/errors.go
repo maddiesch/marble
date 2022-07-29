@@ -25,3 +25,6 @@ type ObjectCastError struct {
 func (e ObjectCastError) Error() string {
 	return fmt.Sprintf("ObjectCastError: Unable to cast from %s to %s\n\tSource: %s", e.Object.Type(), e.Target, e.Node.SourceToken().Location)
 }
+
+type TypeError struct {
+}

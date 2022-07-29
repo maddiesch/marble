@@ -32,14 +32,14 @@ func (o *Integer) GoValue() any {
 	return o.Value
 }
 
-func (o *Integer) Cast(t ObjectType) (Object, bool) {
+func (o *Integer) CoerceTo(t ObjectType) (Object, bool) {
 	switch t {
 	case INTEGER:
 		return o, true
 	case FLOAT:
-		return &Floating{Value: float64(o.Value)}, true
+		return Float(float64(o.Value)), true
 	case BOOLEAN:
-		return &Boolean{Value: o.Value > 0}, true
+		return Bool(o.Value > 0), true
 	default:
 		return &Void{}, false
 	}
@@ -47,54 +47,14 @@ func (o *Integer) Cast(t ObjectType) (Object, bool) {
 
 var _ Object = (*Integer)(nil)
 
-// MARK: Arithmetic
-
-func (o *Integer) Add(v math.ArithmeticAddition) (math.ArithmeticAddition, bool) {
-	if c, ok := v.(Castable); ok {
-		if i, ok := c.Cast(o.Type()); ok {
-			return Int(o.Value + i.(*Integer).Value), true
-		}
-	}
-	return nil, false
-}
-
-func (o *Integer) Sub(v math.ArithmeticSubtraction) (math.ArithmeticSubtraction, bool) {
-	if c, ok := v.(Castable); ok {
-		if i, ok := c.Cast(o.Type()); ok {
-			return Int(o.Value - i.(*Integer).Value), true
-		}
-	}
-	return nil, false
-}
-
-func (o *Integer) Multiply(v math.ArithmeticMultiplication) (math.ArithmeticMultiplication, bool) {
-	if c, ok := v.(Castable); ok {
-		if i, ok := c.Cast(o.Type()); ok {
-			return Int(o.Value * i.(*Integer).Value), true
-		}
-	}
-	return nil, false
-}
-
-func (o *Integer) Divide(v math.ArithmeticDivision) (math.ArithmeticDivision, bool) {
-	if c, ok := v.(Castable); ok {
-		if i, ok := c.Cast(o.Type()); ok {
-			return Int(o.Value / i.(*Integer).Value), true
-		}
-	}
-	return nil, false
-}
-
-var _ math.ArithmeticBasic = (*Integer)(nil)
-
 // MARK: Comparable
 
 func (o *Integer) Equal(v any) (bool, bool) {
 	switch v := v.(type) {
 	case *Integer:
 		return o.Value == v.Value, true
-	case Castable:
-		if cast, ok := o.Cast(o.Type()); ok {
+	case Coercible:
+		if cast, ok := o.CoerceTo(o.Type()); ok {
 			return o.Equal(cast)
 		} else {
 			return false, false
@@ -108,8 +68,8 @@ func (o *Integer) LessThan(v any) (bool, bool) {
 	switch v := v.(type) {
 	case *Integer:
 		return o.Value < v.Value, true
-	case Castable:
-		if cast, ok := o.Cast(o.Type()); ok {
+	case Coercible:
+		if cast, ok := o.CoerceTo(o.Type()); ok {
 			return o.Equal(cast)
 		} else {
 			return false, false
@@ -120,3 +80,17 @@ func (o *Integer) LessThan(v any) (bool, bool) {
 }
 
 var _ conformance.Comparable = (*Integer)(nil)
+
+// MARK: BasicArithmeticEvaluator
+
+func (o *Integer) PerformBasicArithmeticOperation(op math.ArithmeticOperator, val Object) (Object, error) {
+	cast, err := CoerceTo(val, INTEGER)
+	if err != nil {
+		return nil, err
+	}
+	right := cast.(*Integer)
+
+	return Int(math.EvaluateOperation(op, o.Value, right.Value)), nil
+}
+
+var _ BasicArithmeticEvaluator = (*Integer)(nil)

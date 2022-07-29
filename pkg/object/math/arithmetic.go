@@ -1,92 +1,52 @@
 package math
 
-type ArithmeticAddition interface {
-	Add(ArithmeticAddition) (ArithmeticAddition, bool)
-}
+import (
+	"strconv"
 
-type ArithmeticSubtraction interface {
-	Sub(ArithmeticSubtraction) (ArithmeticSubtraction, bool)
-}
+	"golang.org/x/exp/constraints"
+)
 
-type ArithmeticMultiplication interface {
-	Multiply(ArithmeticMultiplication) (ArithmeticMultiplication, bool)
-}
+type ArithmeticOperator rune
 
-type ArithmeticDivision interface {
-	Divide(ArithmeticDivision) (ArithmeticDivision, bool)
-}
+const (
+	OperationAdd      ArithmeticOperator = '+'
+	OperationSubtract ArithmeticOperator = '-'
+	OperationMultiply ArithmeticOperator = '*'
+	OperationDivide   ArithmeticOperator = '/'
+)
 
-type ArithmeticModulus interface {
-	Mod(ArithmeticModulus) (ArithmeticModulus, bool)
-}
-
-type ArithmeticPower interface {
-	Power(ArithmeticPower) (ArithmeticPower, bool)
-}
-
-type ArithmeticBasic interface {
-	ArithmeticAddition
-	ArithmeticSubtraction
-	ArithmeticMultiplication
-	ArithmeticDivision
-}
-
-func Add[T ArithmeticAddition](lhs T, rhs T) (T, bool) {
-	if r, ok := lhs.Add(rhs); ok {
-		if tr, ok := r.(T); ok {
-			return tr, true
-		}
+func OperatorFor(s string) (ArithmeticOperator, bool) {
+	var v ArithmeticOperator
+	r := []rune(s)
+	if len(r) == 0 {
+		return v, false
 	}
-	var z T
-	return z, false
+
+	switch r[0] {
+	case '+':
+		return OperationAdd, true
+	case '-':
+		return OperationSubtract, true
+	case '*':
+		return OperationMultiply, true
+	case '/':
+		return OperationDivide, true
+	}
+
+	return v, false
 }
 
-func Subtract[T ArithmeticSubtraction](lhs T, rhs T) (T, bool) {
-	if r, ok := lhs.Sub(rhs); ok {
-		if tr, ok := r.(T); ok {
-			return tr, true
-		}
+func EvaluateOperation[T constraints.Integer | constraints.Float](op ArithmeticOperator, lhs, rhs T) T {
+	switch op {
+	case OperationAdd:
+		return lhs + rhs
+	case OperationSubtract:
+		return lhs - rhs
+	case OperationMultiply:
+		return lhs * rhs
+	case OperationDivide:
+		return lhs / rhs
+	default:
+		panic("unable to perform arithmetic operation for operator: " + strconv.QuoteRune(rune(op)))
 	}
-	var z T
-	return z, false
-}
-
-func Multiply[T ArithmeticMultiplication](lhs T, rhs T) (T, bool) {
-	if r, ok := lhs.Multiply(rhs); ok {
-		if tr, ok := r.(T); ok {
-			return tr, true
-		}
-	}
-	var z T
-	return z, false
-}
-
-func Divide[T ArithmeticDivision](lhs T, rhs T) (T, bool) {
-	if r, ok := lhs.Divide(rhs); ok {
-		if tr, ok := r.(T); ok {
-			return tr, true
-		}
-	}
-	var z T
-	return z, false
-}
-
-func Mod[T ArithmeticModulus](lhs T, rhs T) (T, bool) {
-	if r, ok := lhs.Mod(rhs); ok {
-		if tr, ok := r.(T); ok {
-			return tr, true
-		}
-	}
-	var z T
-	return z, false
-}
-
-func Pow[T ArithmeticPower](lhs T, rhs T) (T, bool) {
-	if r, ok := lhs.Power(rhs); ok {
-		if tr, ok := r.(T); ok {
-			return tr, true
-		}
-	}
-	var z T
-	return z, false
 }
