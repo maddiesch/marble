@@ -25,7 +25,7 @@ func (*Integer) Type() ObjectType {
 }
 
 func (o *Integer) Description() string {
-	return fmt.Sprintf("%d", o.Value)
+	return fmt.Sprintf("Int(%d)", o.Value)
 }
 
 func (o *Integer) GoValue() any {

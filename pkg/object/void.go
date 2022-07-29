@@ -13,7 +13,7 @@ func (*Void) Type() ObjectType {
 }
 
 func (*Void) Description() string {
-	return "VOID"
+	return "void"
 }
 
 func (*Void) GoValue() any {

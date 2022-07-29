@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	Prompt      = "> "
+	Prompt      = ">   "
 	ExitCommand = ":exit"
 	Indent      = "\t"
 )
@@ -87,7 +87,7 @@ func processLine(i int, scanner *bufio.Scanner, buf *bytes.Buffer) bool {
 		return true
 	}
 
-	io.WriteString(buf, fmt.Sprintf("%d) ", i))
+	io.WriteString(buf, fmt.Sprintf("$R%d: ", i))
 	io.WriteString(buf, out.Description())
 	io.WriteString(buf, "\n")
 

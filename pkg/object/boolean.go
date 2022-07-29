@@ -19,7 +19,7 @@ func (o *Boolean) Type() ObjectType {
 }
 
 func (o *Boolean) Description() string {
-	return fmt.Sprintf("%t", o.Value)
+	return fmt.Sprintf("Bool(%t)", o.Value)
 }
 
 func (o *Boolean) GoValue() any {

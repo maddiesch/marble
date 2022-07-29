@@ -22,7 +22,7 @@ func (r *Error) Error() string {
 
 	builder.WriteString("RuntimeError: [" + string(r.ID) + "] " + r.Detail)
 	if len(r.Context) > 0 {
-		builder.WriteString("\nContext\n")
+		builder.WriteString("\nContext:\n")
 		str := make([]string, 0, len(r.Context))
 
 		for key, value := range r.Context {

@@ -13,7 +13,7 @@ func (o *Null) Type() ObjectType {
 }
 
 func (o *Null) Description() string {
-	return "NULL"
+	return "Null()"
 }
 
 func (o *Null) GoValue() any {

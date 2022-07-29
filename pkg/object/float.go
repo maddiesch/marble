@@ -23,7 +23,7 @@ func (*Floating) Type() ObjectType {
 }
 
 func (o *Floating) Description() string {
-	return fmt.Sprintf("%f", o.Value)
+	return fmt.Sprintf("Float(%f)", o.Value)
 }
 
 func (o Floating) GoValue() any {
