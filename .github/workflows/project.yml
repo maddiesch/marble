@@ -17,5 +17,7 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.golang-version }}
+      - name: Dependencies
+        run: go mod download
       - name: Test
         run: make test
