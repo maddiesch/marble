@@ -51,14 +51,93 @@ func _evalInfixOperator(n *ast.InfixExpression, lhs, rhs object.Object) (object.
 			return left.PerformBasicArithmeticOperation(op, rhs)
 		}
 	}
-	return nil, runtime.NewError(
-		runtime.TypeError,
-		"Unable to perform infix operation for given types",
-		runtime.ErrorValue("Operator", n.Operator),
-		runtime.ErrorValue("Left", lhs),
-		runtime.ErrorValue("Right", rhs),
-		runtime.ErrorValue("Location", n.SourceToken().Location),
-	)
+
+	switch n.Operator {
+	case "<", "<=", ">", ">=":
+		return _evalComparisonInfixExpression(n, lhs, rhs)
+	case "==", "!=":
+		return _evalBooleanResultInfixExpression(n, lhs, rhs)
+	default:
+		return nil, runtime.NewError(
+			runtime.TypeError,
+			"Unable to perform infix operation for given types",
+			runtime.ErrorValue("Operator", n.Operator),
+			runtime.ErrorValue("Left", lhs),
+			runtime.ErrorValue("Right", rhs),
+			runtime.ErrorValue("Location", n.SourceToken().Location),
+		)
+	}
+}
+
+func _evalComparisonInfixExpression(n *ast.InfixExpression, lhs, rhs object.Object) (object.Object, error) {
+	comparable, ok := lhs.(object.ComparisionEvaluator)
+	if !ok {
+		return nil, runtime.NewError(
+			runtime.TypeError,
+			"Unable to perform comparison for the given type",
+			runtime.ErrorValue("Operator", n.Operator),
+			runtime.ErrorValue("Left", lhs),
+			runtime.ErrorValue("Right", rhs),
+			runtime.ErrorValue("Location", n.SourceToken().Location),
+		)
+	}
+
+	lessThan, err := comparable.PerformLessThanComparison(rhs)
+	if err != nil {
+		return nil, err
+	}
+
+	switch n.Operator {
+	case "<":
+		return object.Bool(lessThan), nil
+	case ">":
+		return object.Bool(!lessThan), nil
+	case "<=":
+		if lessThan {
+			return object.Bool(true), nil
+		}
+		eq, err := comparable.PerformEqualityCheck(rhs)
+		if err != nil {
+			return nil, err
+		}
+		return object.Bool(eq), nil
+	case ">=":
+		if !lessThan {
+			return object.Bool(true), nil
+		}
+		eq, err := comparable.PerformEqualityCheck(rhs)
+		if err != nil {
+			return nil, err
+		}
+		return object.Bool(eq), nil
+	default:
+		panic("unable to handle the given operator, this is an interpreter error as the operator should not have been passed here!")
+	}
+}
+
+func _evalBooleanResultInfixExpression(n *ast.InfixExpression, lhs, rhs object.Object) (object.Object, error) {
+	equateable, ok := lhs.(object.EqualityEvaluator)
+	if !ok {
+		return nil, runtime.NewError(
+			runtime.TypeError,
+			"Unable to perform equality check for the given type",
+			runtime.ErrorValue("Operator", n.Operator),
+			runtime.ErrorValue("Left", lhs),
+			runtime.ErrorValue("Right", rhs),
+			runtime.ErrorValue("Location", n.SourceToken().Location),
+		)
+	}
+
+	eq, err := equateable.PerformEqualityCheck(rhs)
+	if err != nil {
+		return nil, err
+	}
+
+	if n.Operator == "!=" {
+		eq = !eq
+	}
+
+	return object.Bool(eq), nil
 }
 
 func _evalPrefixExpression(node *ast.PrefixExpression) (object.Object, error) {

@@ -94,3 +94,25 @@ func (o *Integer) PerformBasicArithmeticOperation(op math.ArithmeticOperator, va
 }
 
 var _ BasicArithmeticEvaluator = (*Integer)(nil)
+
+// MARK: ComparisionEvaluator
+
+func (o *Integer) PerformEqualityCheck(r Object) (bool, error) {
+	i, err := CoerceTo(r, INTEGER)
+	if err != nil {
+		return false, err
+	}
+
+	return o.Value == i.(*Integer).Value, nil
+}
+
+func (o *Integer) PerformLessThanComparison(r Object) (bool, error) {
+	i, err := CoerceTo(r, INTEGER)
+	if err != nil {
+		return false, err
+	}
+
+	return o.Value < i.(*Integer).Value, nil
+}
+
+var _ ComparisionEvaluator = (*Integer)(nil)

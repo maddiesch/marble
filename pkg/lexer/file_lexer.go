@@ -42,10 +42,16 @@ func (f *FileLexer) RegisterKeyword(n string, k token.Kind) {
 }
 
 func (l *FileLexer) NextToken() token.Token {
-	createToken := func(k token.Kind) token.Token {
+	createToken := func(k token.Kind, runeOverride ...rune) token.Token {
+		val := l.s.TokenText()
+
+		if len(runeOverride) > 0 {
+			val = string(runeOverride)
+		}
+
 		return token.Token{
 			Kind:     k,
-			Value:    l.s.TokenText(),
+			Value:    val,
 			Location: token.Location(l.s.Pos()),
 		}
 	}
@@ -78,7 +84,7 @@ func (l *FileLexer) NextToken() token.Token {
 			} else if op.r2 == l.s.Peek() {
 				l.s.Scan() // Consume the next token
 
-				return createToken(op.Kind)
+				return createToken(op.Kind, op.r1, op.r2)
 			}
 		}
 		return createToken(token.Invalid)
@@ -136,6 +142,8 @@ func (f *FileLexer) init() (*FileLexer, error) {
 	f.RegisterSingleRuneOperator('!', token.Bang)
 
 	f.RegisterDoubleRuneOperator('=', '=', token.Equate)
+	f.RegisterDoubleRuneOperator('<', '=', token.LessThanEqual)
+	f.RegisterDoubleRuneOperator('>', '=', token.GreaterThanEqual)
 	f.RegisterDoubleRuneOperator('!', '=', token.NotEquate)
 	f.RegisterDoubleRuneOperator(':', ':', token.DoubleColon)
 

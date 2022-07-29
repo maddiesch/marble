@@ -15,3 +15,13 @@ type Object interface {
 type BasicArithmeticEvaluator interface {
 	PerformBasicArithmeticOperation(math.ArithmeticOperator, Object) (Object, error)
 }
+
+type EqualityEvaluator interface {
+	PerformEqualityCheck(Object) (bool, error)
+}
+
+type ComparisionEvaluator interface {
+	EqualityEvaluator
+
+	PerformLessThanComparison(Object) (bool, error)
+}

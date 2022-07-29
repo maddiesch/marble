@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/maddiesch/marble/internal/test"
 	"github.com/maddiesch/marble/pkg/lexer"
 	"github.com/maddiesch/marble/pkg/token"
 	"github.com/stretchr/testify/assert"
@@ -75,6 +76,23 @@ func TestLexer(t *testing.T) {
 				token.Percent,
 			)
 		})
+	})
+
+	t.Run("double rune token value", func(t *testing.T) {
+		tests := []test.Tuple3[string, int, string]{
+			{One: "foo == bar", Two: 1, Three: "=="},
+			{One: "foo != bar", Two: 1, Three: "!="},
+			{One: "foo >= bar", Two: 1, Three: ">="},
+			{One: "let r = foo <= bar", Two: 4, Three: "<="},
+		}
+
+		for _, tt := range tests {
+			tokens := ParseTokenSlice(t, strings.NewReader(tt.One))
+
+			if assert.GreaterOrEqual(t, len(tokens), tt.Two+1, "not enough tokens") {
+				assert.Equal(t, tt.Three, tokens[tt.Two].Value)
+			}
+		}
 	})
 
 	t.Run("given a basic assignment", func(t *testing.T) {

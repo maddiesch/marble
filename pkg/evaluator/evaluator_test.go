@@ -10,25 +10,49 @@ import (
 
 func TestExecute(t *testing.T) {
 	t.Run("Integer Expression", func(t *testing.T) {
-		tests := []test.Tuple2[int64, string]{
-			{One: 42, Two: "42"},
-			{One: -128, Two: "-128"},
-			{One: 100, Two: "50 + 50"},
-			{One: 42, Two: "100 - 58.0"},
-			{One: 30, Two: "5 * 6"},
-			{One: -30, Two: "5 * -6"},
-			{One: -30, Two: "5 * -6"},
-			{One: 52, Two: "(8 + 5) * 4"},
-			{One: 26, Two: "((8 + 5) * 4) / 2"},
-			{One: 156, Two: "6 * (((8 + 5) * 4) / 2)"},
-		}
+		t.Run("boolean results", func(t *testing.T) {
+			tests := []test.Tuple2[bool, string]{
+				{One: true, Two: "50 > 25"},
+				{One: true, Two: "42 > 16"},
+				{One: true, Two: "42 >= 42"},
+				{One: true, Two: "42 < 100"},
+				{One: true, Two: "42 <= 100.8"},
+				{One: true, Two: "42 <= 42"},
+				{One: true, Two: "42 == 42"},
+				{One: false, Two: "42 != 42"},
+			}
 
-		for _, tu := range tests {
-			out := test.Eval(t, tu.Two)
+			for _, tu := range tests {
+				t.Run(tu.Two, func(t *testing.T) {
+					out := test.Eval(t, tu.Two)
 
-			assert.Equal(t, object.INTEGER, out.Type())
-			assert.Equal(t, tu.One, out.GoValue())
-		}
+					assert.Equal(t, object.BOOLEAN, out.Type())
+					assert.Equal(t, tu.One, out.GoValue())
+				})
+			}
+		})
+
+		t.Run("integer results", func(t *testing.T) {
+			tests := []test.Tuple2[int64, string]{
+				{One: 42, Two: "42"},
+				{One: -128, Two: "-128"},
+				{One: 100, Two: "50 + 50"},
+				{One: 42, Two: "100 - 58.0"},
+				{One: 30, Two: "5 * 6"},
+				{One: -30, Two: "5 * -6"},
+				{One: -30, Two: "5 * -6"},
+				{One: 52, Two: "(8 + 5) * 4"},
+				{One: 26, Two: "((8 + 5) * 4) / 2"},
+				{One: 156, Two: "6 * (((8 + 5) * 4) / 2)"},
+			}
+
+			for _, tu := range tests {
+				out := test.Eval(t, tu.Two)
+
+				assert.Equal(t, object.INTEGER, out.Type())
+				assert.Equal(t, tu.One, out.GoValue())
+			}
+		})
 	})
 
 	t.Run("FloatExpression", func(t *testing.T) {
