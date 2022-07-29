@@ -500,3 +500,7 @@ func (p *Parser) parseDoExpression() (ast.Expression, error) {
 		Block: block,
 	}, nil
 }
+
+func (p *Parser) parseNullExpression() (ast.Expression, error) {
+	return &ast.NullExpression{}, nil
+}

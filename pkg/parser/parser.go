@@ -69,6 +69,7 @@ func (p *Parser) init() *Parser {
 	p.registerPrefixParser(token.Bang, p.parsePrefixExpression)
 	p.registerPrefixParser(token.Not, p.parsePrefixExpression)
 	p.registerPrefixParser(token.Minus, p.parsePrefixExpression)
+	p.registerPrefixParser(token.LiteralNull, p.parseNullExpression)
 	p.registerPrefixParser(token.LiteralTrue, p.parseBooleanExpression)
 	p.registerPrefixParser(token.LiteralFalse, p.parseBooleanExpression)
 	p.registerPrefixParser(token.LParen, p.parseGroupedExpression)

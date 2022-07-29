@@ -3,19 +3,20 @@ package repl
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/maddiesch/marble/pkg/evaluator"
 	"github.com/maddiesch/marble/pkg/lexer"
 	"github.com/maddiesch/marble/pkg/parser"
 )
 
 var (
 	Prompt      = "> "
-	ExitCommand = "_exit"
+	ExitCommand = ":exit"
 	Indent      = "\t"
 )
 
@@ -24,11 +25,15 @@ var Builtin = map[string]func() bool{}
 func Run(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 
+	count := 0
+
 	for {
-		fmt.Fprint(out, Prompt)
+		count += 1
+
+		io.WriteString(out, fmt.Sprintf("%d%s", count, Prompt))
 
 		var buf bytes.Buffer
-		cont := processLine(scanner, &buf)
+		cont := processLine(count, scanner, &buf)
 		buf.WriteTo(out)
 
 		if !cont {
@@ -37,7 +42,7 @@ func Run(in io.Reader, out io.Writer) {
 	}
 }
 
-func processLine(scanner *bufio.Scanner, buf *bytes.Buffer) bool {
+func processLine(i int, scanner *bufio.Scanner, buf *bytes.Buffer) bool {
 	scanned := scanner.Scan()
 	if !scanned {
 		return false
@@ -75,12 +80,16 @@ func processLine(scanner *bufio.Scanner, buf *bytes.Buffer) bool {
 		return true
 	}
 
-	encoder := json.NewEncoder(os.Stdout)
-	encoder.SetIndent("", "\t")
-
-	for _, stmt := range prog.StatementList {
-		encoder.Encode(stmt)
+	out, err := evaluator.Evaluate(prog)
+	if err != nil {
+		spew.Dump(err)
+		// TODO: Handler Error
+		return true
 	}
+
+	io.WriteString(buf, fmt.Sprintf("%d) ", i))
+	io.WriteString(buf, out.Description())
+	io.WriteString(buf, "\n")
 
 	return true
 }

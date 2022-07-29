@@ -254,4 +254,14 @@ func TestParserRun(t *testing.T) {
 		test.AssertIdentifier(t, "foo", constant.Identifier)
 		test.AssertLiteralValue(t, int64(1), constant.Expression)
 	})
+
+	t.Run("parse nil literal", func(t *testing.T) {
+		prog := createProgramFromSource(t, "nil")
+
+		require.Equal(t, 1, len(prog.StatementList))
+
+		test.RequireType(t, &ast.NullExpression{},
+			test.RequireType(t, &ast.ExpressionStatement{}, prog.StatementList[0]).Expression,
+		)
+	})
 }
