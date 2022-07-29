@@ -27,10 +27,37 @@ func (o *Boolean) GoValue() any {
 }
 
 func (o *Boolean) CoerceTo(t ObjectType) (Object, bool) {
-	if t == o.Type() {
+	switch t {
+	case BOOLEAN:
 		return o, true
+	case INTEGER:
+		if o.Value == true {
+			return Int(1), true
+		} else {
+			return Int(0), true
+		}
+	case FLOAT:
+		if o.Value == true {
+			return Float(1.0), true
+		} else {
+			return Float(0.0), true
+		}
+	default:
+		return &Void{}, false
 	}
-	return &Void{}, false
 }
 
 var _ Object = (*Boolean)(nil)
+
+// MARK: EqualityEvaluator
+
+func (o *Boolean) PerformEqualityCheck(r Object) (bool, error) {
+	i, err := CoerceTo(r, BOOLEAN)
+	if err != nil {
+		return false, err
+	}
+
+	return o.Value == i.(*Boolean).Value, nil
+}
+
+var _ EqualityEvaluator = (*Boolean)(nil)

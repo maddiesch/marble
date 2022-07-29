@@ -1,7 +1,6 @@
 package evaluator
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	"github.com/maddiesch/marble/pkg/ast"
 	"github.com/maddiesch/marble/pkg/evaluator/runtime"
 	"github.com/maddiesch/marble/pkg/object"
@@ -88,29 +87,20 @@ func _evalComparisonInfixExpression(n *ast.InfixExpression, lhs, rhs object.Obje
 		return nil, err
 	}
 
+	equal, err := comparable.PerformEqualityCheck(rhs)
+	if err != nil {
+		return nil, err
+	}
+
 	switch n.Operator {
 	case "<":
-		return object.Bool(lessThan), nil
+		return object.Bool(lessThan && !equal), nil
 	case ">":
-		return object.Bool(!lessThan), nil
+		return object.Bool(!lessThan && !equal), nil
 	case "<=":
-		if lessThan {
-			return object.Bool(true), nil
-		}
-		eq, err := comparable.PerformEqualityCheck(rhs)
-		if err != nil {
-			return nil, err
-		}
-		return object.Bool(eq), nil
+		return object.Bool(lessThan || equal), nil
 	case ">=":
-		if !lessThan {
-			return object.Bool(true), nil
-		}
-		eq, err := comparable.PerformEqualityCheck(rhs)
-		if err != nil {
-			return nil, err
-		}
-		return object.Bool(eq), nil
+		return object.Bool(!lessThan || equal), nil
 	default:
 		panic("unable to handle the given operator, this is an interpreter error as the operator should not have been passed here!")
 	}
@@ -122,6 +112,7 @@ func _evalBooleanResultInfixExpression(n *ast.InfixExpression, lhs, rhs object.O
 		return nil, runtime.NewError(
 			runtime.TypeError,
 			"Unable to perform equality check for the given type",
+			runtime.ErrorValue("FailureReason", "Expression left-hand side does not conform to EqualityEvaluator"),
 			runtime.ErrorValue("Operator", n.Operator),
 			runtime.ErrorValue("Left", lhs),
 			runtime.ErrorValue("Right", rhs),
@@ -152,8 +143,6 @@ func _evalNotExpression(node *ast.NotExpression) (object.Object, error) {
 	if err := object.CoerceToType(right, b); err != nil {
 		return nil, err
 	}
-
-	spew.Dump(right, b)
 
 	return object.Bool(!b.Value), nil
 }

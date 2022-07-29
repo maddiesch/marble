@@ -77,6 +77,41 @@ func TestExecute(t *testing.T) {
 	})
 
 	t.Run("BooleanExpression", func(t *testing.T) {
+		tests := test.TestingTuple2[string, bool]{
+			// EQ
+			{One: "1 == 2", Two: false},
+			{One: "1 == true", Two: true},
+			{One: "true == 1", Two: true},
+			// NEQ
+			{One: "1 != 2", Two: true},
+			// LT
+			{One: "1 < 1", Two: false},
+			{One: "1 < 2", Two: true},
+			{One: "5 < 2", Two: false},
+			// GT
+			{One: "1 > 1", Two: false},
+			{One: "1 > 2", Two: false},
+			{One: "5 > 2", Two: true},
+			// LT-EQ
+			{One: "5 <= 5", Two: true},
+			{One: "5 <= 4", Two: false},
+			{One: "5 <= 6", Two: true},
+			// GT-EQ
+			{One: "5 >= 5", Two: true},
+			{One: "5 >= 4", Two: true},
+			{One: "5 >= 6", Two: false},
+			// NOT
+			{One: "!(false == 0)", Two: false},
+		}
+
+		tests.Each(func(statement string, value bool) {
+			t.Run(statement, func(t *testing.T) {
+				out := test.Eval(t, statement)
+
+				assert.Equal(t, value, out.GoValue())
+			})
+		})
+
 		t.Run("true", func(t *testing.T) {
 			out := test.Eval(t, "true")
 
@@ -95,10 +130,10 @@ func TestExecute(t *testing.T) {
 	t.Run("Bang Prefix", func(t *testing.T) {
 		tests := []test.Tuple2[bool, string]{
 			{One: false, Two: "!true"},
-			// {One: true, Two: "!false"},
-			// {One: true, Two: "!!true"},
-			// {One: false, Two: "!!false"},
-			// {One: true, Two: "!1"},
+			{One: true, Two: "!false"},
+			{One: true, Two: "!!true"},
+			{One: false, Two: "!!false"},
+			{One: false, Two: "!1"},
 		}
 
 		for _, tu := range tests {
