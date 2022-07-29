@@ -28,6 +28,8 @@ func (o *Integer) Cast(t ObjectType) (Object, bool) {
 		return o, true
 	case FLOAT:
 		return &Float{Value: float64(o.Value)}, true
+	case BOOLEAN:
+		return &Boolean{Value: o.Value > 0}, true
 	default:
 		return &Void{}, false
 	}

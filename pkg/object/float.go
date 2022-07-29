@@ -28,6 +28,8 @@ func (o *Float) Cast(t ObjectType) (Object, bool) {
 		return &Integer{Value: int64(o.Value)}, true
 	case FLOAT:
 		return o, true
+	case BOOLEAN:
+		return CastChain(o, INTEGER, BOOLEAN)
 	default:
 		return &Void{}, false
 	}

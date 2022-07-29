@@ -26,3 +26,13 @@ func TestObjectType(t *testing.T) {
 		})
 	}
 }
+
+func TestChainCast(t *testing.T) {
+	f := &object.Float{Value: 1}
+
+	b, ok := object.CastChain(f, object.INTEGER, object.BOOLEAN)
+
+	if assert.True(t, ok) {
+		assert.Equal(t, true, b.(*object.Boolean).Value)
+	}
+}
