@@ -21,3 +21,22 @@ jobs:
         run: go mod download
       - name: Test
         run: make test
+  build-marble:
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.golang-version }}
+      - name: Dependencies
+        run: go mod download
+      - name: Test
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -o build/marble-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/marble
