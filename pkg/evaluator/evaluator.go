@@ -5,6 +5,7 @@ import (
 
 	"github.com/maddiesch/marble/pkg/ast"
 	"github.com/maddiesch/marble/pkg/object"
+	"golang.org/x/exp/constraints"
 )
 
 func Evaluate(node ast.Node) (object.Object, error) {
@@ -16,7 +17,7 @@ func Evaluate(node ast.Node) (object.Object, error) {
 	case *ast.IntegerExpression:
 		return &object.Integer{Value: node.Value}, nil
 	case *ast.FloatExpression:
-		return &object.Float{Value: node.Value}, nil
+		return &object.Floating{Value: node.Value}, nil
 	case *ast.BooleanExpression:
 		return &object.Boolean{Value: node.Value}, nil
 	case *ast.NullExpression:
@@ -66,9 +67,9 @@ func _evalBasicArithmetic(n *ast.InfixExpression, lhs, rhs object.Object) (objec
 	case *object.Integer:
 		rhs := cast.(*object.Integer)
 		return &object.Integer{Value: _execMathOp(n.Operator, lhs.Value, rhs.Value)}, nil
-	case *object.Float:
-		rhs := cast.(*object.Float)
-		return &object.Float{Value: _execMathOp(n.Operator, lhs.Value, rhs.Value)}, nil
+	case *object.Floating:
+		rhs := cast.(*object.Floating)
+		return &object.Floating{Value: _execMathOp(n.Operator, lhs.Value, rhs.Value)}, nil
 	default:
 		return nil, IllegalExpression{Node: n, Message: "Unable to perform arithmetic operation"}
 	}
@@ -93,8 +94,8 @@ func _evalNegateExpression(obj object.Object, n ast.Node) (object.Object, error)
 	switch o := obj.(type) {
 	case *object.Integer:
 		return &object.Integer{Value: -o.Value}, nil
-	case *object.Float:
-		return &object.Float{Value: -o.Value}, nil
+	case *object.Floating:
+		return &object.Floating{Value: -o.Value}, nil
 	default:
 		return nil, IllegalExpression{Node: n, Message: "Unable to negate given object"}
 	}
@@ -123,7 +124,7 @@ func _evalStatementList(list []ast.Statement) (object.Object, error) {
 	return result, nil
 }
 
-func _execMathOp[V int64 | float64](o string, l, r V) V {
+func _execMathOp[V constraints.Integer | constraints.Float](o string, l, r V) V {
 	switch o {
 	case "+":
 		return l + r
@@ -135,5 +136,20 @@ func _execMathOp[V int64 | float64](o string, l, r V) V {
 		return l * r
 	default:
 		panic("illegal math operator " + o)
+	}
+}
+
+func _execValueComparable[T constraints.Ordered](o string, l, r T) bool {
+	switch o {
+	case "<":
+		return l < r
+	case "<=":
+		return l <= r
+	case ">":
+		return l > r
+	case ">=":
+		return l >= r
+	default:
+		panic("illegal comparision operator " + o)
 	}
 }

@@ -1,12 +1,16 @@
 package object
 
 type Object interface {
+	Castable
+
 	Type() ObjectType
 
 	GoValue() any
 
 	Description() string
+}
 
+type Castable interface {
 	Cast(ObjectType) (Object, bool)
 }
 

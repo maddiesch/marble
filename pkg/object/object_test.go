@@ -14,7 +14,7 @@ func TestObjectType(t *testing.T) {
 		expected object.ObjectType
 	}{
 		{&object.Boolean{}, object.BOOLEAN},
-		{&object.Float{}, object.FLOAT},
+		{&object.Floating{}, object.FLOAT},
 		{&object.Integer{}, object.INTEGER},
 		{&object.Null{}, object.NULL},
 		{&object.Void{}, object.VOID},
@@ -28,7 +28,7 @@ func TestObjectType(t *testing.T) {
 }
 
 func TestChainCast(t *testing.T) {
-	f := &object.Float{Value: 1}
+	f := &object.Floating{Value: 1}
 
 	b, ok := object.CastChain(f, object.INTEGER, object.BOOLEAN)
 

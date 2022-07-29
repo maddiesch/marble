@@ -6,6 +6,10 @@ const (
 	BOOLEAN ObjectType = "OBJ_Boolean"
 )
 
+func Bool(v bool) *Boolean {
+	return &Boolean{Value: v}
+}
+
 type Boolean struct {
 	Value bool
 }
