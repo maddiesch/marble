@@ -3,6 +3,7 @@ package object
 import (
 	"fmt"
 
+	"github.com/maddiesch/marble/pkg/object/math"
 	"golang.org/x/exp/constraints"
 )
 
@@ -42,3 +43,15 @@ func (o *Floating) CoerceTo(t ObjectType) (Object, bool) {
 }
 
 var _ Object = (*Floating)(nil)
+
+// MARK: BasicArithmeticEvaluator
+
+func (o *Floating) PerformBasicArithmeticOperation(op math.ArithmeticOperator, val Object) (Object, error) {
+	cast, err := CoerceTo(val, FLOAT)
+	if err != nil {
+		return nil, err
+	}
+	right := cast.(*Floating)
+
+	return Float(math.EvaluateOperation(op, o.Value, right.Value)), nil
+}

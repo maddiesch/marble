@@ -1,8 +1,7 @@
 package evaluator
 
 import (
-	"fmt"
-
+	"github.com/davecgh/go-spew/spew"
 	"github.com/maddiesch/marble/pkg/ast"
 	"github.com/maddiesch/marble/pkg/evaluator/runtime"
 	"github.com/maddiesch/marble/pkg/object"
@@ -23,8 +22,10 @@ func Evaluate(node ast.Node) (object.Object, error) {
 		return &object.Boolean{Value: node.Value}, nil
 	case *ast.NullExpression:
 		return &object.Null{}, nil
-	case *ast.PrefixExpression:
-		return _evalPrefixExpression(node)
+	case *ast.NegateExpression:
+		return _evalNegateExpression(node)
+	case *ast.NotExpression:
+		return _evalNotExpression(node)
 	case *ast.InfixExpression:
 		return _evalInfixExpression(node)
 	default:
@@ -140,39 +141,37 @@ func _evalBooleanResultInfixExpression(n *ast.InfixExpression, lhs, rhs object.O
 	return object.Bool(eq), nil
 }
 
-func _evalPrefixExpression(node *ast.PrefixExpression) (object.Object, error) {
+func _evalNotExpression(node *ast.NotExpression) (object.Object, error) {
 	right, err := Evaluate(node.Expression)
 	if err != nil {
 		return nil, err
 	}
-	switch node.Operator {
-	case "!":
-		return _evalBangForExpression(right)
-	case "-":
-		return _evalNegateExpression(right, node)
-	default:
-		return nil, fmt.Errorf("failed to evaluate prefix expression")
+
+	b := new(object.Boolean)
+
+	if err := object.CoerceToType(right, b); err != nil {
+		return nil, err
 	}
+
+	spew.Dump(right, b)
+
+	return object.Bool(!b.Value), nil
 }
 
-func _evalNegateExpression(obj object.Object, n ast.Node) (object.Object, error) {
-	switch o := obj.(type) {
-	case *object.Integer:
-		return &object.Integer{Value: -o.Value}, nil
-	case *object.Floating:
-		return &object.Floating{Value: -o.Value}, nil
-	default:
-		return nil, IllegalExpression{Node: n, Message: "Unable to negate given object"}
+func _evalNegateExpression(n *ast.NegateExpression) (object.Object, error) {
+	obj, err := Evaluate(n.Expression)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func _evalBangForExpression(obj object.Object) (object.Object, error) {
-	switch o := obj.(type) {
-	case *object.Boolean:
-		return &object.Boolean{Value: !o.Value}, nil
-	default:
-		return &object.Boolean{Value: false}, nil
+	if left, ok := obj.(object.BasicArithmeticEvaluator); ok {
+		return left.PerformBasicArithmeticOperation(math.OperationMultiply, object.Int(-1))
 	}
+	return nil, runtime.NewError(
+		runtime.TypeError,
+		"Unable to negate expression",
+		runtime.ErrorValue("Value", obj),
+		runtime.ErrorValue("Node", n),
+	)
 }
 
 func _evalStatementList(list []ast.Statement) (object.Object, error) {

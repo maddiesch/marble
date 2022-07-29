@@ -140,25 +140,32 @@ func (p *Parser) parseBooleanExpression() (ast.Expression, error) {
 func (p *Parser) parsePrefixExpression() (ast.Expression, error) {
 	defer untrace(trace("parsePrefixExpression"))
 
-	op := p.currentToken.Value
-	if op == "not" {
-		op = "!"
-	}
-	expression := &ast.PrefixExpression{
-		Token:    p.currentToken,
-		Operator: op,
-	}
+	currentToken := p.currentToken
 
 	p.advance()
 
-	child, err := p.parseExpression(Prefix)
+	expression, err := p.parseExpression(Prefix)
 	if err != nil {
 		return nil, err
 	}
 
-	expression.Expression = child
-
-	return expression, nil
+	switch currentToken.Value {
+	case "!", "not":
+		return &ast.NotExpression{
+			Token:      currentToken,
+			Expression: expression,
+		}, nil
+	case "-":
+		return &ast.NegateExpression{
+			Token:      currentToken,
+			Expression: expression,
+		}, nil
+	default:
+		return nil, ExpressionParseError{
+			Token:   currentToken,
+			Message: "Unable to create a prefix expression for the given token",
+		}
+	}
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression) (ast.Expression, error) {

@@ -52,16 +52,16 @@ func TestParserRun(t *testing.T) {
 			{"false", "Bool(false)"},
 			{"3 > 5 == false", "((Int(3) > Int(5)) == Bool(false))"},
 			{"3 < 5 == true", "((Int(3) < Int(5)) == Bool(true))"},
-			{"not foo", "!(ID(foo))"},
-			{"!foo", "!(ID(foo))"},
-			{"-a * b", "(-(ID(a)) * ID(b))"},
+			{"not foo", "NOT(ID(foo))"},
+			{"!foo", "NOT(ID(foo))"},
+			{"-a * b", "(NEG(ID(a)) * ID(b))"},
 			{"5 < 5", "(Int(5) < Int(5))"},
 			{"a + b * c + 3.5 / e - f", "(((ID(a) + (ID(b) * ID(c))) + (Float(3.500000) / ID(e))) - ID(f))"},
 			{"3 + 4 * 5 == 3 * 1 + 4 * 5", "((Int(3) + (Int(4) * Int(5))) == ((Int(3) * Int(1)) + (Int(4) * Int(5))))"},
 			{"1 + (2 + 3) + 4", "((Int(1) + (Int(2) + Int(3))) + Int(4))"},
 			{"(5 + 5) * 2", "((Int(5) + Int(5)) * Int(2))"},
-			{"-(5 + 5)", "-((Int(5) + Int(5)))"},
-			{"!(true == true)", "!((Bool(true) == Bool(true)))"},
+			{"-(5 + 5)", "NEG((Int(5) + Int(5)))"},
+			{"!(true == true)", "NOT((Bool(true) == Bool(true)))"},
 		}
 
 		for _, tc := range tests {
@@ -93,9 +93,9 @@ func TestParserRun(t *testing.T) {
 		negExpr := test.RequireType(t, &ast.ExpressionStatement{}, prog.StatementList[1])
 		notExpr := test.RequireType(t, &ast.ExpressionStatement{}, prog.StatementList[2])
 
-		assert.Equal(t, "!", test.RequireType(t, &ast.PrefixExpression{}, bangExpr.Expression).Operator)
-		assert.Equal(t, "-", test.RequireType(t, &ast.PrefixExpression{}, negExpr.Expression).Operator)
-		assert.Equal(t, "!", test.RequireType(t, &ast.PrefixExpression{}, notExpr.Expression).Operator)
+		test.RequireType(t, &ast.NotExpression{}, bangExpr.Expression)
+		test.RequireType(t, &ast.NegateExpression{}, negExpr.Expression)
+		test.RequireType(t, &ast.NotExpression{}, notExpr.Expression)
 	})
 
 	t.Run("parse basic expressions", func(t *testing.T) {

@@ -6,6 +6,20 @@ type Coercible interface {
 	CoerceTo(ObjectType) (Object, bool)
 }
 
+func CoerceToType[T Object](from Object, val T) error {
+	out, err := CoerceTo(from, val.Type())
+	if err != nil {
+		return err
+	}
+	if outSafe, ok := out.(T); ok {
+		CopyObject(outSafe, val)
+	} else {
+		panic("coercion succeeded, but the returned object was not the expected type")
+	}
+
+	return nil
+}
+
 func CoerceTo(obj Object, t ObjectType) (Object, error) {
 	if o, ok := obj.CoerceTo(t); ok {
 		return o, nil
