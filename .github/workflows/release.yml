@@ -27,5 +27,6 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: build/marble-${{ github.ref }}-${{ matrix.goos }}-${{ matrix.goarch }}
+          asset_name: marble-${{ github.ref }}-${{ matrix.goos }}-${{ matrix.goarch }}
           tag: ${{ github.ref }}
           overwrite: true
