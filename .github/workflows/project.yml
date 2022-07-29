@@ -1,18 +1,21 @@
-name: Go
-
+name: Project
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 jobs:
-  tests:
-    runs-on: ubuntu-latest
+  unit-test:
+    strategy:
+      matrix:
+        host-os: [ubuntu-latest]
+        golang-version: [1.18.x]
+    runs-on: ${{ matrix.host-os }}
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.18
-    - name: Test
-      run: make test
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.golang-version }}
+      - name: Test
+        run: make test

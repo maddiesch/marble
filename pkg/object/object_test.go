@@ -27,12 +27,13 @@ func TestObjectType(t *testing.T) {
 	}
 }
 
-func TestChainCast(t *testing.T) {
-	f := &object.Floating{Value: 1}
+func TestChainCoerceTo(t *testing.T) {
+	t.Run("float -> int -> bool", func(t *testing.T) {
+		start := object.Float(1.0)
 
-	b, err := object.ChainCoerceTo(f, object.INTEGER, object.BOOLEAN)
-
-	if assert.NoError(t, err) {
-		assert.Equal(t, true, b.(*object.Boolean).Value)
-	}
+		b, err := object.ChainCoerceTo(start, object.INTEGER, object.BOOLEAN)
+		if assert.NoError(t, err) {
+			assert.Equal(t, true, b.GoValue())
+		}
+	})
 }

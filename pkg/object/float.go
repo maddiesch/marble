@@ -36,12 +36,6 @@ func (o *Floating) CoerceTo(t ObjectType) (Object, bool) {
 		return Int(int64(o.Value)), true
 	case FLOAT:
 		return o, true
-	case BOOLEAN:
-		o, err := ChainCoerceTo(o, INTEGER, BOOLEAN)
-		if err != nil {
-			return nil, false
-		}
-		return o, true
 	default:
 		return &Void{}, false
 	}

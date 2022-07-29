@@ -19,7 +19,7 @@ func CoerceTo(obj Object, t ObjectType) (Object, error) {
 func ChainCoerceTo(o Object, t ...ObjectType) (result Object, err error) {
 	result = o
 	for _, t := range t {
-		result, err = CoerceTo(o, t)
+		result, err = CoerceTo(result, t)
 		if err != nil {
 			return nil, err
 		}
