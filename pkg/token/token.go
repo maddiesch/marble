@@ -18,6 +18,8 @@ const (
 	Not      Kind = "NOT"
 	Mutate   Kind = "MUTATE"
 	Do       Kind = "DO"
+	Delete   Kind = "DELETE"
+	Defined  Kind = "DEFINED"
 
 	// Identifiers & Literals
 	Identifier   Kind = "IDENT"

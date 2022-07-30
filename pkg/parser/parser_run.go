@@ -45,9 +45,35 @@ func (p *Parser) parseCurrentTokenIntoStatement() (ast.Statement, error) {
 		return p.parseReturnStatement()
 	case token.Comment:
 		return nil, nil
+	case token.Delete:
+		return p.parseDeleteStatement()
 	default:
 		return p.parseExpressionStatement()
 	}
+}
+
+func (p *Parser) parseDeleteStatement() (ast.Statement, error) {
+	defer untrace(trace("parseDeleteStatement"))
+
+	delToken := p.currentToken
+
+	p.advance()
+
+	if !p.currentTokenIs(token.Identifier) {
+		return nil, UnexpectedTokenError{Token: p.currentToken, Expected: token.Identifier}
+	}
+
+	idToken := p.currentToken
+
+	p.advance()
+
+	return &ast.DeleteStatement{
+		Token: delToken,
+		Identifier: &ast.IdentifierExpression{
+			Token: idToken,
+			Value: idToken.Value,
+		},
+	}, nil
 }
 
 func (p *Parser) parseReturnStatement() (ast.Statement, error) {

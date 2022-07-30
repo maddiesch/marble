@@ -13,6 +13,32 @@ import (
 )
 
 func TestParserRun(t *testing.T) {
+	t.Run("defined statement", func(t *testing.T) {
+		t.Run("return statement", func(t *testing.T) {
+			pro := createProgramFromSource(t, `return defined foo;`)
+
+			require.Equal(t, 1, len(pro.StatementList))
+
+			assert.Equal(t, `return DEFINED(ID(foo))`, pro.StatementList[0].String())
+		})
+
+		t.Run("top level expression", func(t *testing.T) {
+			pro := createProgramFromSource(t, `defined foo;`)
+
+			require.Equal(t, 1, len(pro.StatementList))
+
+			assert.Equal(t, `EXPR: DEFINED(ID(foo))`, pro.StatementList[0].String())
+		})
+	})
+
+	t.Run("delete statement", func(t *testing.T) {
+		pro := createProgramFromSource(t, `let foo = 1; delete foo; return true;`)
+
+		require.Equal(t, 3, len(pro.StatementList))
+
+		assert.Equal(t, `DELETE(ID(foo))`, pro.StatementList[1].String())
+	})
+
 	t.Run("when given an invalid token", func(t *testing.T) {
 		p := createParserFromSource(t, "`")
 

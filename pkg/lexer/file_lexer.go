@@ -131,6 +131,8 @@ func (f *FileLexer) init() (*FileLexer, error) {
 	f.RegisterKeyword("true", token.LiteralTrue)
 	f.RegisterKeyword("mut", token.Mutate)
 	f.RegisterKeyword("do", token.Do)
+	f.RegisterKeyword("delete", token.Delete)
+	f.RegisterKeyword("defined", token.Defined)
 
 	f.RegisterSingleRuneOperator('=', token.Assign)
 	f.RegisterSingleRuneOperator('+', token.Plus)

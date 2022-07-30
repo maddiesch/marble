@@ -20,3 +20,11 @@ func (f *frame) get(k string) (v *Entry, ok bool) {
 	v, ok = f.lookup[k]
 	return
 }
+
+func (f *frame) delete(k string) bool {
+	if _, ok := f.lookup[k]; ok {
+		delete(f.lookup, k)
+		return true
+	}
+	return false
+}

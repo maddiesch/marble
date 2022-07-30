@@ -13,15 +13,40 @@ import (
 	"github.com/maddiesch/marble/pkg/evaluator"
 	"github.com/maddiesch/marble/pkg/lexer"
 	"github.com/maddiesch/marble/pkg/parser"
+	"github.com/maddiesch/marble/pkg/version"
 )
 
 var (
-	Prompt      = ">   "
-	ExitCommand = ":exit"
-	Indent      = "\t"
+	Prompt = ">   "
+	Indent = "\t"
 )
 
-var Builtin = map[string]func() bool{}
+const (
+	ExitCommand = ":exit"
+	HelpCommand = ":help"
+)
+
+var Builtin = map[string]func(*env.Env, io.Writer) bool{
+	ExitCommand: func(*env.Env, io.Writer) bool {
+		return false
+	},
+	HelpCommand: func(_ *env.Env, out io.Writer) bool {
+		io.WriteString(out, fmt.Sprintf("Marble R.E.P.L. Help (%s)", version.Current))
+		io.WriteString(out, "\n")
+		return true
+	},
+	":dump": func(e *env.Env, out io.Writer) bool {
+		return true
+	},
+	":push": func(e *env.Env, _ io.Writer) bool {
+		e.Push()
+		return true
+	},
+	":pop": func(e *env.Env, _ io.Writer) bool {
+		e.Pop()
+		return true
+	},
+}
 
 func Run(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
@@ -53,12 +78,8 @@ func processLine(e *env.Env, i int, scanner *bufio.Scanner, buf *bytes.Buffer) b
 
 	line := scanner.Text()
 
-	if line == ExitCommand {
-		return false
-	}
-
-	if fn, ok := Builtin[line]; ok {
-		return fn()
+	if fn, ok := Builtin[strings.TrimSpace(line)]; ok {
+		return fn(e, buf)
 	}
 
 	l, err := lexer.New("[REPL]", strings.NewReader(line))

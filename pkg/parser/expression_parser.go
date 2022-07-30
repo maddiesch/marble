@@ -7,6 +7,30 @@ import (
 	"github.com/maddiesch/marble/pkg/token"
 )
 
+func (p *Parser) parseDefinedExpression() (ast.Expression, error) {
+	defer untrace(trace("parseDefinedExpression"))
+
+	delToken := p.currentToken
+
+	p.advance()
+
+	if !p.currentTokenIs(token.Identifier) {
+		return nil, UnexpectedTokenError{Token: p.currentToken, Expected: token.Identifier}
+	}
+
+	idToken := p.currentToken
+
+	p.advance()
+
+	return &ast.DefinedExpression{
+		Token: delToken,
+		Identifier: &ast.IdentifierExpression{
+			Token: idToken,
+			Value: idToken.Value,
+		},
+	}, nil
+}
+
 func (p *Parser) parseExpressionStatement() (ast.Statement, error) {
 	defer untrace(trace("parseExpressionStatement"))
 

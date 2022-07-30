@@ -9,6 +9,36 @@ import (
 )
 
 func TestExecute(t *testing.T) {
+	t.Run("Defined", func(t *testing.T) {
+		tests := test.TestingTuple2[string, any]{
+			{One: "let a = 1; defined a;", Two: true},
+			{One: "defined a;", Two: false},
+		}
+
+		tests.Each(func(source string, expected any) {
+			t.Run(source, func(t *testing.T) {
+				result := test.Eval(t, source)
+
+				assert.Equal(t, expected, result.GoValue())
+			})
+		})
+	})
+
+	t.Run("Delete", func(t *testing.T) {
+		tests := test.TestingTuple2[string, any]{
+			{One: "let a = 1; return defined a;", Two: true},
+			{One: "let a = 1; delete a; return defined a;", Two: false},
+		}
+
+		tests.Each(func(source string, expected any) {
+			t.Run(source, func(t *testing.T) {
+				result := test.Eval(t, source)
+
+				assert.Equal(t, expected, result.GoValue())
+			})
+		})
+	})
+
 	t.Run("Assignment", func(t *testing.T) {
 		tests := test.TestingTuple2[string, any]{
 			{One: "let a = 1; return a;", Two: int64(1)},

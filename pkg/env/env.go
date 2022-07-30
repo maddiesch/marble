@@ -89,6 +89,10 @@ func (s LabelState) Mutable() bool {
 	return s == LabelStateUnassigned || s == LabelStateAssignedMutable
 }
 
+func (s LabelState) Defined() bool {
+	return s != LabelStateUnassigned
+}
+
 func (e *Env) StateFor(key string, currentFrameOnly bool) LabelState {
 	en := e.getEntry(key, !currentFrameOnly)
 	if en == nil {
@@ -144,10 +148,29 @@ func (e *Env) getEntry(key string, recursively bool) *Entry {
 	return nil
 }
 
+func (e *Env) Delete(key string, currentFrameOnly bool) {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	for i := len(e.lookup) - 1; i >= 0; i-- {
+		if e.lookup[i].delete(key) {
+			return
+		}
+
+		if currentFrameOnly {
+			return
+		}
+	}
+}
+
 func (e *Env) Get(key string) (object.Object, bool) {
 	entry := e.GetEntry(key)
 	if entry == nil {
 		return &object.Void{}, false
 	}
 	return entry.Value, true
+}
+
+func (e *Env) DebugString() string {
+	return ""
 }

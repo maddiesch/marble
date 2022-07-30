@@ -78,6 +78,7 @@ func (p *Parser) init() *Parser {
 	p.registerPrefixParser(token.If, p.parseIfExpression)
 	p.registerPrefixParser(token.Function, p.parseFunctionExpression)
 	p.registerPrefixParser(token.Do, p.parseDoExpression)
+	p.registerPrefixParser(token.Defined, p.parseDefinedExpression)
 
 	p.registerInfixParser(token.Plus, p.parseInfixExpression)
 	p.registerInfixParser(token.Minus, p.parseInfixExpression)

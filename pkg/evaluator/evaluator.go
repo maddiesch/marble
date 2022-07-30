@@ -45,6 +45,10 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 		return _evalAssignmentNode(env, node)
 	case *ast.ConstantStatement:
 		return _evalAssignmentNode(env, node)
+	case *ast.DeleteStatement:
+		return _evalDeleteStatement(env, node)
+	case *ast.DefinedExpression:
+		return object.Bool(env.StateFor(node.Identifier.Value, false).Defined()), nil
 	case *ast.IdentifierExpression:
 		value, ok := env.Get(node.Value)
 		if !ok {
@@ -63,6 +67,40 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 			runtime.ErrorValue("NodeType", fmt.Sprintf("%T", node)),
 			runtime.ErrorValue("Node", node),
 		)
+	}
+}
+
+func _evalDeleteStatement(e *env.Env, node *ast.DeleteStatement) (object.Object, error) {
+	name := node.Identifier.Value
+	state := e.StateFor(name, false)
+	switch state {
+	case env.LabelStateUnassigned:
+		return nil, runtime.NewError(runtime.UnknownIdentifierError,
+			"Can't delete an undefined identifier",
+			runtime.ErrorValue("Location", node.SourceToken().Location),
+			runtime.ErrorValue("Label", name),
+		)
+	case env.LabelStateAssignedProtected, env.LabelStateAssignedImmutable:
+		return nil, runtime.NewError(runtime.ConstantError,
+			"Can't delete a constant identifier",
+			runtime.ErrorValue("Location", node.SourceToken().Location),
+			runtime.ErrorValue("Label", name),
+		)
+	case env.LabelStateAssignedMutable:
+		val, ok := e.Get(name)
+		if !ok {
+			return nil, runtime.NewError(runtime.InterpreterError,
+				"Unable to find an existing value for the label",
+				runtime.ErrorValue("Location", node.SourceToken().Location),
+				runtime.ErrorValue("Label", name),
+			)
+		}
+
+		e.Delete(name, false)
+
+		return val, nil
+	default:
+		panic("there is a state for the environment entry that we weren't expecting. This should not be possible!")
 	}
 }
 
