@@ -2,7 +2,6 @@ package native
 
 import (
 	"io"
-	"os"
 
 	"github.com/maddiesch/marble/pkg/evaluator/runtime"
 	"github.com/maddiesch/marble/pkg/object"
@@ -21,8 +20,8 @@ func Bind(b object.Binding) {
 	}
 }
 
-func _printDescription(_ object.Binding, args []object.Object) (object.Object, error) {
-	io.WriteString(os.Stdout, args[0].Description()+"\n")
+func _printDescription(b object.Binding, args []object.Object) (object.Object, error) {
+	io.WriteString(b.Stderr(), args[0].Description()+"\n")
 
 	return args[0], nil
 }

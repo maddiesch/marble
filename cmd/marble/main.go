@@ -18,7 +18,6 @@ var App = cli.App{
 	Name: "marble",
 	Commands: []*cli.Command{
 		CommandRepl,
-		CommandTokenize,
-		CommandParse,
+		CommandRun,
 	},
 }

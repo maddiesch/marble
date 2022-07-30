@@ -1,16 +1,13 @@
-// Name of the person to greet
-const name = "Maddie Schipper";
+// Define Greetings
+const greeting_names = ["Maddie Schipper", "from Marble"]
 
-// The greeting message
-const greeting = "Hello {}";
-
-let message = std::format(greeting, name);
-
-if (not message.has_suffix("!")) {
-  mut message = std::format("{}!", message)
+const greeting = fn(message) {
+  print_description("Hello " + message + "!")
 }
 
-const STDOUT = os::file_ptr(1);
+let index = 0
+while (index < len(greeting_names)) {
+  greeting(greeting_names[index])
 
-// Write the message to the standard output file
-std::write_str(STDOUT, message);
+  index = index + 1
+}

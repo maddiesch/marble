@@ -1,5 +1,7 @@
 package object
 
+import "io"
+
 type Binding interface {
 	SetProtected(string, Object)
 	Get(string) (Object, bool)
@@ -7,4 +9,6 @@ type Binding interface {
 	Update(string, Object, bool) bool
 	PushNS(string)
 	PopNS()
+	Stdout() io.Writer
+	Stderr() io.Writer
 }

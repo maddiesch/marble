@@ -1,6 +1,7 @@
 package env_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/maddiesch/marble/pkg/env"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestEnv(t *testing.T) {
-	e := env.New()
+	e := env.New(os.Stdout, os.Stderr)
 
 	e.Set("foo", object.Int(1), true)
 	e.Set("bar", object.String("baz"), true)

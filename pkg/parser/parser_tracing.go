@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+func SetTracingEnabled(e bool) {
+	tracer.enabled = e
+}
+
 var tracer = &_tracer{
 	enabled: false,
 	indent:  "  ",

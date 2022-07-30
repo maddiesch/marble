@@ -25,7 +25,7 @@ func (*ClosureLiteral) Type() ObjectType {
 }
 
 func (o *ClosureLiteral) Description() string {
-	return fmt.Sprintf("Closure()")
+	return fmt.Sprintf("Closure(%d)", o.FrameID)
 }
 
 func (*ClosureLiteral) GoValue() any {

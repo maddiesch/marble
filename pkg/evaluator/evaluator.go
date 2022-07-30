@@ -2,6 +2,7 @@ package evaluator
 
 import (
 	"fmt"
+	"runtime/debug"
 
 	"github.com/maddiesch/marble/internal/collection"
 	"github.com/maddiesch/marble/pkg/ast"
@@ -235,8 +236,12 @@ func _evalCallClosureLiteral(e *env.Env, closure *object.ClosureLiteral, node *a
 	}
 
 	if !e.PushTo(closure.FrameID) {
+		fmt.Println(e.DebugString())
+		fmt.Println(node.String())
+		debug.PrintStack()
 		return nil, runtime.NewError(runtime.InterpreterError,
 			"Unable to push to the expected execution state for function call!",
+			runtime.ErrorValue("StackFrame", closure.FrameID),
 		)
 	}
 	defer e.Restore()

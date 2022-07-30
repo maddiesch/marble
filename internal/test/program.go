@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/maddiesch/marble/internal/collection"
@@ -17,7 +18,7 @@ import (
 func Eval(t TestingT, source ...string) object.Object {
 	pro := CreateProgram(t, source...)
 
-	e := env.New()
+	e := env.New(os.Stdout, os.Stderr)
 
 	out, err := evaluator.Evaluate(e, pro)
 

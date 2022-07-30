@@ -1,6 +1,7 @@
 package env
 
 import (
+	"io"
 	"strings"
 	"sync"
 
@@ -20,9 +21,11 @@ type Env struct {
 	fid       uint64
 	ptr       uint64
 	stack     []ast.Node
+	stdout    io.Writer
+	stderr    io.Writer
 }
 
-func New() *Env {
+func New(stdout, stderr io.Writer) *Env {
 	e := &Env{
 		fid:       0,
 		ptr:       1_000_000,
@@ -30,6 +33,8 @@ func New() *Env {
 		lookup:    make([]*frame, 0, 8),
 		restore:   make([][]*frame, 0, 4),
 		stack:     make([]ast.Node, 0, 32),
+		stdout:    stdout,
+		stderr:    stderr,
 	}
 
 	e.PushEval(&ast.Entrypoint{})
@@ -269,6 +274,14 @@ func (e *Env) PushNS(string) {
 }
 
 func (e *Env) PopNS() {
+}
+
+func (e *Env) Stdout() io.Writer {
+	return e.stdout
+}
+
+func (e *Env) Stderr() io.Writer {
+	return e.stderr
 }
 
 var _ object.Binding = (*Env)(nil)

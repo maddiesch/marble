@@ -56,7 +56,7 @@ func NewError(id ErrorID, detail string, context ...ErrorContextValue) *Error {
 
 type ErrorContextValue interface {
 	Key() string
-	Value() any
+	Value() string
 }
 
 type _errorContextValue struct {
@@ -68,8 +68,13 @@ func (v *_errorContextValue) Key() string {
 	return v.k
 }
 
-func (v *_errorContextValue) Value() any {
-	return v.v
+func (v *_errorContextValue) Value() string {
+	switch val := v.v.(type) {
+	case fmt.Stringer:
+		return val.String()
+	default:
+		return fmt.Sprint(val)
+	}
 }
 
 func ErrorValue(k string, v any) ErrorContextValue {

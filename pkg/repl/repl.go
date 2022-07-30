@@ -53,7 +53,7 @@ func Run(in io.Reader, out io.Writer) {
 
 	count := 0
 
-	e := env.New()
+	e := env.New(os.Stdout, os.Stderr)
 
 	for {
 		count += 1
