@@ -12,9 +12,9 @@ import (
 func Evaluate(node ast.Node) (object.Object, error) {
 	switch node := node.(type) {
 	case *ast.Program:
-		return _evalStatementList(node.StatementList)
+		return _evalStatementList(node.StatementList, true)
 	case *ast.BlockStatement:
-		return _evalStatementList(node.StatementList)
+		return _evalStatementList(node.StatementList, false)
 	case *ast.ExpressionStatement:
 		return Evaluate(node.Expression)
 	case *ast.IntegerExpression:
@@ -206,7 +206,10 @@ func _evalNegateExpression(n *ast.NegateExpression) (object.Object, error) {
 	)
 }
 
-func _evalStatementList(list []ast.Statement) (object.Object, error) {
+// We need to know if we should return the return object or unwrap to the real
+// value. This is so that nested return statements will bubble up to the parent
+// to handle the return statement
+func _evalStatementList(list []ast.Statement, unwrapReturn bool) (object.Object, error) {
 	var result object.Object
 	var err error
 
@@ -217,7 +220,11 @@ func _evalStatementList(list []ast.Statement) (object.Object, error) {
 		}
 
 		if ret, ok := result.(*object.ReturnObject); ok {
-			return ret.Value, nil
+			if unwrapReturn {
+				return ret.Value, nil
+			} else {
+				return ret, nil
+			}
 		}
 	}
 

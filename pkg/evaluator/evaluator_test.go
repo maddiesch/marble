@@ -14,6 +14,7 @@ func TestExecute(t *testing.T) {
 			{One: "1; return 2; 3;", Two: int64(2)},
 			{One: "return (1 + 4);", Two: int64(5)},
 			{One: "return (1 + 4) == true;", Two: false},
+			{One: "if (10 > 1) { if (10 > 1) { return 10 } return 1 }", Two: int64(10)},
 		}
 
 		tests.Each(func(source string, expected any) {
