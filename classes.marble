@@ -1,0 +1,29 @@
+// WIP Class & Namespace Syntax
+
+namespace test {
+  class person {
+    @attr name;
+
+    const init = fn(&self, name) {
+      self.set_name(name);
+    }
+  }
+
+  class programmer extends person {
+    @attr_reader favorite_language;
+
+    const init = fn(&self, &super, name, favorite_language) {
+      super.init(name)
+
+      self.set_instance_variable("favorite_language", favorite_language)
+    }
+
+    const is_favorite_language_marble = fn(&self) {
+      return self.favorite_language() == "Marble"
+    }
+  }
+}
+
+let maddie = test::programmer.new("Maddie Schipper", "Marble")
+maddie.is_favorite_language_marble()
+// > Bool(true)
