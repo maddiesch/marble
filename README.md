@@ -2,6 +2,18 @@
 
 An embeddable scripting language.
 
+## CLI
+
+### REPL
+
+There is a REPL available!
+
+```bash
+make marble
+
+./marble repl
+```
+
 ## Pipeline
 
 ### Lexing & Tokenization
