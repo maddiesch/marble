@@ -21,3 +21,19 @@ jobs:
         run: go mod download
       - name: Test
         run: make test
+  go-formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18.x
+      - name: Checkout Source
+        uses: actions/checkout@v2
+      - name: Check Formatting
+        run: |-
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            echo "Files are not properly formatted"
+            gofmt -s -l .
+            exit 1
+          fi
