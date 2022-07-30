@@ -107,6 +107,18 @@ func _evalCallExpression(e *env.Env, node *ast.CallExpression) (object.Object, e
 		)
 	}
 
+	// We need to evaluate the arguments before we push to the closure's frame
+	// We also can't bind the arguments into the environment until we have pushed into the closure's frame
+	// So we loop once to evaluate the arguments, push to the closure's frame, then bind the argument values into the frame
+	arguments := make([]object.Object, len(node.Arguments))
+	for i, arg := range node.Arguments {
+		val, err := Evaluate(e, arg)
+		if err != nil {
+			return nil, err
+		}
+		arguments[i] = val
+	}
+
 	if !e.PushTo(closure.FrameID) {
 		return nil, runtime.NewError(runtime.InterpreterError,
 			"Unable to push to the expected execution state for function call!",
@@ -117,13 +129,8 @@ func _evalCallExpression(e *env.Env, node *ast.CallExpression) (object.Object, e
 	e.Push()
 	defer e.Pop()
 
-	for i, arg := range node.Arguments {
+	for i, val := range arguments {
 		name := closure.ParameterList[i]
-		val, err := Evaluate(e, arg)
-		if err != nil {
-			return nil, err
-		}
-
 		e.Set(name, val, false)
 	}
 
@@ -358,6 +365,8 @@ func _evalStatementList(env *env.Env, list []ast.Statement, pushStack, unwrapRet
 	}
 	var result object.Object
 	var err error
+
+	result = &object.Null{}
 
 	for _, node := range list {
 		result, err = Evaluate(env, node)

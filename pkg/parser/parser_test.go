@@ -2,11 +2,13 @@ package parser_test
 
 import (
 	"strings"
+	"testing"
 
 	"github.com/maddiesch/marble/internal/test"
 	"github.com/maddiesch/marble/pkg/ast"
 	"github.com/maddiesch/marble/pkg/lexer"
 	"github.com/maddiesch/marble/pkg/parser"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,4 +28,13 @@ func createProgramFromSource(t test.TestingT, source string) *ast.Program {
 	require.NoError(t, p.Err())
 
 	return prog
+}
+
+func TestParserEdgeCases(t *testing.T) {
+	t.Run("if-else nested in block", func(t *testing.T) {
+		par := createParserFromSource(t, `do { if (true) {} else {} }`)
+		par.Run()
+
+		assert.NoError(t, par.Err())
+	})
 }

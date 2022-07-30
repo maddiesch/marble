@@ -295,7 +295,6 @@ func (p *Parser) parseIfExpression() (ast.Expression, error) {
 		if err != nil {
 			return nil, err
 		}
-		p.advance() // Consume }
 
 		expr.FalseStatement = falseBlock
 	}
