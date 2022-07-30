@@ -6,8 +6,8 @@ class person {
   @attr name;
 }
 
-implement person : debug_printable {
-  const debug_description = fn() {
-    "Person: " + person.name()
+implement debug_printable for person {
+  const debug_description = fn(&self) {
+    "Person: " + self.name()
   }
 }
