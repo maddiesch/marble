@@ -1,0 +1,13 @@
+protocol debug_printable {
+  required debug_description;
+}
+
+class person {
+  @attr name;
+}
+
+implement person : debug_printable {
+  const debug_description = fn() {
+    "Person: " + person.name()
+  }
+}
