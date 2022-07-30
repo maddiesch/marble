@@ -60,6 +60,7 @@ func (p *Parser) init() *Parser {
 		token.DoubleColon:      Call,
 		token.Period:           Call,
 		token.LBracket:         Subscript,
+		token.Assign:           Assignment,
 	}
 
 	p.prefixParser = make(map[token.Kind]ParserPrefixFunc)
@@ -93,6 +94,7 @@ func (p *Parser) init() *Parser {
 	p.registerInfixParser(token.LessThanEqual, p.parseInfixExpression)
 	p.registerInfixParser(token.GreaterThan, p.parseInfixExpression)
 	p.registerInfixParser(token.GreaterThanEqual, p.parseInfixExpression)
+	p.registerInfixParser(token.Assign, p.parseAssignInfixExpression)
 	p.registerInfixParser(token.LParen, p.parseCallExpression)
 	p.registerInfixParser(token.DoubleColon, p.parseDoubleColonExpression)
 	p.registerInfixParser(token.Period, p.parsePeriodExpression)

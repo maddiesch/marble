@@ -43,6 +43,10 @@ func (p *Parser) parseCurrentTokenIntoStatement() (ast.Statement, error) {
 		return p.parseMutateStatement()
 	case token.Return:
 		return p.parseReturnStatement()
+	case token.Break:
+		return p.parseBreakStatement()
+	case token.Continue:
+		return p.parseContinueStatement()
 	case token.Comment:
 		return nil, nil
 	case token.Delete:
@@ -50,6 +54,22 @@ func (p *Parser) parseCurrentTokenIntoStatement() (ast.Statement, error) {
 	default:
 		return p.parseExpressionStatement()
 	}
+}
+
+func (p *Parser) parseContinueStatement() (ast.Statement, error) {
+	defer untrace(trace("parseContinueStatement"))
+
+	return &ast.ContinueStatement{
+		Token: p.currentToken,
+	}, nil
+}
+
+func (p *Parser) parseBreakStatement() (ast.Statement, error) {
+	defer untrace(trace("parseBreakStatement"))
+
+	return &ast.BreakStatement{
+		Token: p.currentToken,
+	}, nil
 }
 
 func (p *Parser) parseDeleteStatement() (ast.Statement, error) {

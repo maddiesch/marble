@@ -6,4 +6,7 @@ type AssignmentStatement interface {
 	Label() string
 	Mutable() bool
 	AssignmentExpression() Expression
+	CurrentFrameOnly() bool
+	RequireUndefined() bool
+	RequireDefined() bool
 }

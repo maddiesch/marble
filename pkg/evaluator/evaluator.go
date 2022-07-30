@@ -22,6 +22,8 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 		return _evalStatementList(env, node.StatementList, true, false)
 	case *ast.ExpressionStatement:
 		return Evaluate(env, node.Expression)
+	case *ast.StatementExpression:
+		return Evaluate(env, node.Statement)
 	case *ast.IntegerExpression:
 		return object.Int(node.Value), nil
 	case *ast.FloatExpression:
@@ -43,9 +45,11 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 	case *ast.ReturnStatement:
 		return _evalReturnStatement(env, node)
 	case *ast.LetStatement:
-		return _evalAssignmentNode(env, node)
+		return _evalAssignmentNode(env, node, false)
+	case *ast.MutateStatement:
+		return _evalAssignmentNode(env, node, true)
 	case *ast.ConstantStatement:
-		return _evalAssignmentNode(env, node)
+		return _evalAssignmentNode(env, node, false)
 	case *ast.DeleteStatement:
 		return _evalDeleteStatement(env, node)
 	case *ast.ArrayExpression:
@@ -54,6 +58,12 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 		return _evalSubscriptNode(env, node)
 	case *ast.DefinedExpression:
 		return object.Bool(env.StateFor(node.Identifier.Value, false).Defined()), nil
+	case *ast.WhileExpression:
+		return _evalWhileExpression(env, node)
+	case *ast.BreakStatement:
+		return object.Instruction(object.NativeInstructionBreak), nil
+	case *ast.ContinueStatement:
+		return object.Instruction(object.NativeInstructionContinue), nil
 	case *ast.IdentifierExpression:
 		value, ok := env.Get(node.Value)
 		if !ok {
@@ -77,6 +87,48 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 			runtime.ErrorValue("Node", node),
 		)
 	}
+}
+
+func _evalWhileExpression(e *env.Env, node *ast.WhileExpression) (object.Object, error) {
+	var result object.Object
+	result = &object.Null{}
+
+EvalLoop:
+	for {
+		condition, err := Evaluate(e, node.Condition)
+		if err != nil {
+			return nil, err
+		}
+		boolean, err := object.CoerceTo(condition, object.BOOLEAN)
+		if err != nil {
+			return nil, err
+		}
+
+		if !boolean.(*object.Boolean).Value {
+			break
+		}
+
+		blockResult, err := _evalStatementList(e, node.Block.StatementList, true, false)
+		if err != nil {
+			return nil, err
+		}
+
+		switch r := blockResult.(type) {
+		case *object.ReturnObject:
+			return r.Value, nil
+		case *object.NativeInstruction:
+			switch r.IType {
+			case object.NativeInstructionBreak:
+				break EvalLoop
+			case object.NativeInstructionContinue:
+				continue EvalLoop
+			}
+		}
+
+		result = blockResult
+	}
+
+	return result, nil
 }
 
 func _evalSubscriptNode(e *env.Env, node *ast.SubscriptExpression) (object.Object, error) {
@@ -241,21 +293,47 @@ func _evalDeleteStatement(e *env.Env, node *ast.DeleteStatement) (object.Object,
 	}
 }
 
-func _evalAssignmentNode(env *env.Env, node ast.AssignmentStatement) (object.Object, error) {
+func _evalAssignmentNode(e *env.Env, node ast.AssignmentStatement, update bool) (object.Object, error) {
 	name := node.Label()
-	if !env.StateFor(name, true).Mutable() {
-		return nil, runtime.NewError(
-			runtime.ConstantError,
-			"Attempting to assign a new value to a constant",
+
+	currentState := e.StateFor(name, node.CurrentFrameOnly())
+
+	if node.RequireDefined() && !currentState.Defined() {
+		return nil, runtime.NewError(runtime.UnknownIdentifierError,
+			"Unable to assing to an undefined variable",
+			runtime.ErrorValue("Name", name),
 			runtime.ErrorValue("Location", node.SourceToken().Location),
-			runtime.ErrorValue("Label", name),
 		)
 	}
-	value, err := Evaluate(env, node.AssignmentExpression())
+
+	if currentState.Defined() {
+		if !currentState.Mutable() {
+			return nil, runtime.NewError(runtime.ConstantError,
+				"Attempting to assign a new value to a constant",
+				runtime.ErrorValue("Name", name),
+				runtime.ErrorValue("Location", node.SourceToken().Location),
+			)
+		}
+
+		if node.RequireUndefined() {
+			return nil, runtime.NewError(runtime.InterpreterError,
+				"Unable to perform assignment on a defined variable",
+				runtime.ErrorValue("Name", name),
+				runtime.ErrorValue("Location", node.SourceToken().Location),
+			)
+		}
+	}
+
+	value, err := Evaluate(e, node.AssignmentExpression())
+
 	if err != nil {
 		return nil, err
 	}
-	env.Set(name, value, node.Mutable())
+	if update {
+		e.Update(name, value, node.CurrentFrameOnly())
+	} else {
+		e.Set(name, value, node.Mutable())
+	}
 	return value, nil
 }
 
@@ -442,11 +520,17 @@ func _evalStatementList(env *env.Env, list []ast.Statement, pushStack, unwrapRet
 			return nil, err
 		}
 
-		if ret, ok := result.(*object.ReturnObject); ok {
+		switch r := result.(type) {
+		case *object.ReturnObject:
 			if unwrapReturn {
-				return ret.Value, nil
+				return r.Value, nil
 			} else {
-				return ret, nil
+				return r, nil
+			}
+		case *object.NativeInstruction:
+			switch r.IType {
+			case object.NativeInstructionBreak, object.NativeInstructionContinue:
+				return r, nil
 			}
 		}
 	}

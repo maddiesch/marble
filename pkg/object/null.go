@@ -21,10 +21,14 @@ func (o *Null) GoValue() any {
 }
 
 func (o *Null) CoerceTo(t ObjectType) (Object, bool) {
-	if t == o.Type() {
+	switch t {
+	case NULL:
 		return o, true
+	case BOOLEAN:
+		return Bool(false), true
+	default:
+		return &Void{}, false
 	}
-	return &Void{}, false
 }
 
 var _ Object = (*Null)(nil)

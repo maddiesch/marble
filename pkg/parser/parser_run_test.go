@@ -13,14 +13,32 @@ import (
 )
 
 func TestParserRun(t *testing.T) {
+	t.Run("continue", func(t *testing.T) {
+		pro := createProgramFromSource(t, `while (true) { continue }`)
+
+		assert.Equal(t, `STMT(WHILE(Bool(true), { CONTINUE() }))`, pro.StatementList[0].String())
+	})
+
+	t.Run("break", func(t *testing.T) {
+		pro := createProgramFromSource(t, `while (true) { break }`)
+
+		assert.Equal(t, `STMT(WHILE(Bool(true), { BREAK() }))`, pro.StatementList[0].String())
+	})
+
+	t.Run("mutate assignment", func(t *testing.T) {
+		pro := createProgramFromSource(t, `count = count + 1`)
+
+		assert.Equal(t, `STMT(EXPR(MUTATE(ID(count) = (ID(count) + Int(1)))))`, pro.StatementList[0].String())
+	})
+
 	t.Run("while", func(t *testing.T) {
-		pro := createProgramFromSource(t, `while (false) { 1 }`)
+		pro := createProgramFromSource(t, `while (false) { let v = 0; }`)
 
 		require.Equal(t, 1, len(pro.StatementList))
 
 		expr := test.RequireType(t, &ast.ExpressionStatement{}, pro.StatementList[0]).Expression
 
-		assert.Equal(t, "WHILE(Bool(false), { EXPR: Int(1) })", expr.String())
+		assert.Equal(t, "WHILE(Bool(false), { LET(ID(v) = Int(0)) })", expr.String())
 	})
 
 	t.Run("subscript", func(t *testing.T) {
@@ -64,7 +82,7 @@ func TestParserRun(t *testing.T) {
 
 			require.Equal(t, 1, len(pro.StatementList))
 
-			assert.Equal(t, `EXPR: DEFINED(ID(foo))`, pro.StatementList[0].String())
+			assert.Equal(t, `STMT(DEFINED(ID(foo)))`, pro.StatementList[0].String())
 		})
 	})
 
@@ -132,7 +150,7 @@ func TestParserRun(t *testing.T) {
 			pro := createProgramFromSource(t, tc.src)
 
 			if assert.Equal(t, 1, len(pro.StatementList)) {
-				assert.Equal(t, fmt.Sprintf("EXPR: %s", tc.expected), pro.StatementList[0].String(), "Source: %s", tc.src)
+				assert.Equal(t, fmt.Sprintf("STMT(%s)", tc.expected), pro.StatementList[0].String(), "Source: %s", tc.src)
 			}
 		}
 	})

@@ -9,6 +9,25 @@ import (
 )
 
 func TestExecute(t *testing.T) {
+	t.Run("While", func(t *testing.T) {
+		tests := test.TestingTuple2[string, any]{
+			{One: `let count = 0; while (count <= 2) { count = count + 1; }; count`, Two: int64(3)},
+			{One: `while (true == nil) { }`, Two: nil},
+			{One: `while (1) { return 2; }`, Two: int64(2)},
+			{One: `while (true) { if (true) { break } }; 1`, Two: int64(1)},
+			{One: `let count = 0; while (count < 5) { count = count + 1; };`, Two: int64(5)},
+			{One: `let count = 0; let value = 0; while (count < 2) { count = count + 1; if (count == 1) { continue }; value = value + 1 }; value`, Two: int64(1)},
+		}
+
+		tests.Each(func(source string, expected any) {
+			t.Run(source, func(t *testing.T) {
+				result := test.Eval(t, source)
+
+				assert.Equal(t, expected, result.GoValue())
+			})
+		})
+	})
+
 	t.Run("Array", func(t *testing.T) {
 		tests := test.TestingTuple2[string, any]{
 			{One: `let a = [1, fn() { true }]; a[1]()`, Two: true},

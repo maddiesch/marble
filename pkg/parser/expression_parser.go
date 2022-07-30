@@ -7,6 +7,35 @@ import (
 	"github.com/maddiesch/marble/pkg/token"
 )
 
+func (p *Parser) parseAssignInfixExpression(left ast.Expression) (ast.Expression, error) {
+	defer untrace(trace("parseAssignInfixExpression"))
+
+	startToken := p.currentToken
+	identifier, ok := left.(*ast.IdentifierExpression)
+	if !ok {
+		return nil, UnexpectedTokenError{
+			Token:    left.SourceToken(),
+			Expected: token.Identifier,
+		}
+	}
+
+	p.advance()
+
+	expr, err := p.parseExpression(Lowest)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ast.StatementExpression{
+		Token: startToken,
+		Statement: &ast.MutateStatement{
+			Token:      startToken,
+			Identifier: identifier,
+			Expression: expr,
+		},
+	}, nil
+}
+
 func (p *Parser) parseSubscriptExpression(left ast.Expression) (ast.Expression, error) {
 	defer untrace(trace("parseSubscriptExpression"))
 

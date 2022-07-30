@@ -21,6 +21,8 @@ const (
 	Delete   Kind = "DELETE"
 	Defined  Kind = "DEFINED"
 	While    Kind = "WHILE"
+	Break    Kind = "BREAK"
+	Continue Kind = "CONTINUE"
 
 	// Identifiers & Literals
 	Identifier   Kind = "IDENT"

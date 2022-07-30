@@ -176,6 +176,20 @@ func (e *Env) Set(key string, value object.Object, mutable bool) {
 	})
 }
 
+func (e *Env) Update(key string, value object.Object, currentFrameOnly bool) bool {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	en := e.unsafeGetEntry(key, !currentFrameOnly)
+	if en == nil {
+		return false
+	}
+
+	en.Update(value)
+
+	return true
+}
+
 func (e *Env) set(key string, entry *Entry) {
 	e.ptr += 1
 
@@ -189,10 +203,7 @@ func (e *Env) GetEntry(key string) *Entry {
 	return e.getEntry(key, true)
 }
 
-func (e *Env) getEntry(key string, recursively bool) *Entry {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
+func (e *Env) unsafeGetEntry(key string, recursively bool) *Entry {
 	for i := len(e.lookup) - 1; i >= 0; i-- {
 		frame := e.lookup[i]
 
@@ -206,6 +217,13 @@ func (e *Env) getEntry(key string, recursively bool) *Entry {
 	}
 
 	return nil
+}
+
+func (e *Env) getEntry(key string, recursively bool) *Entry {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	return e.unsafeGetEntry(key, recursively)
 }
 
 func (e *Env) Delete(key string, currentFrameOnly bool) {

@@ -14,3 +14,7 @@ type Entry struct {
 	mutable   bool
 	protected bool
 }
+
+func (e *Entry) Update(v object.Object) {
+	e.Value = v
+}

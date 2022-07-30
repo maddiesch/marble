@@ -57,4 +57,16 @@ func (s *LetStatement) AssignmentExpression() Expression {
 	return s.Expression
 }
 
+func (*LetStatement) CurrentFrameOnly() bool {
+	return true
+}
+
+func (s *LetStatement) RequireUndefined() bool {
+	return true
+}
+
+func (*LetStatement) RequireDefined() bool {
+	return false
+}
+
 var _ AssignmentStatement = (*LetStatement)(nil)

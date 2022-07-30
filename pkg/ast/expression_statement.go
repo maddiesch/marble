@@ -17,7 +17,7 @@ func (s *ExpressionStatement) SourceToken() token.Token {
 }
 
 func (s *ExpressionStatement) String() string {
-	return fmt.Sprintf("EXPR: %s", s.Expression.String())
+	return fmt.Sprintf("STMT(%s)", s.Expression.String())
 }
 
 func (b *ExpressionStatement) MarshalJSON() ([]byte, error) {

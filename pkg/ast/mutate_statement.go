@@ -38,9 +38,35 @@ func (b *MutateStatement) MarshalJSON() ([]byte, error) {
 }
 
 func (*MutateStatement) Name() string {
-	return "LetStatement"
+	return "MutateStatement"
 }
 
 func (*MutateStatement) _statementNode() {}
 
 var _ Statement = (*MutateStatement)(nil)
+
+func (s *MutateStatement) Label() string {
+	return s.Identifier.Value
+}
+
+func (*MutateStatement) Mutable() bool {
+	return true
+}
+
+func (s *MutateStatement) AssignmentExpression() Expression {
+	return s.Expression
+}
+
+func (*MutateStatement) CurrentFrameOnly() bool {
+	return false
+}
+
+func (*MutateStatement) RequireUndefined() bool {
+	return false
+}
+
+func (*MutateStatement) RequireDefined() bool {
+	return true
+}
+
+var _ AssignmentStatement = (*MutateStatement)(nil)
