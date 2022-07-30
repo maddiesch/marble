@@ -3,7 +3,6 @@ package object
 import (
 	"fmt"
 
-	"github.com/maddiesch/marble/pkg/object/conformance"
 	"github.com/maddiesch/marble/pkg/object/math"
 	"golang.org/x/exp/constraints"
 )
@@ -46,40 +45,6 @@ func (o *Integer) CoerceTo(t ObjectType) (Object, bool) {
 }
 
 var _ Object = (*Integer)(nil)
-
-// MARK: Comparable
-
-func (o *Integer) Equal(v any) (bool, bool) {
-	switch v := v.(type) {
-	case *Integer:
-		return o.Value == v.Value, true
-	case Coercible:
-		if cast, ok := o.CoerceTo(o.Type()); ok {
-			return o.Equal(cast)
-		} else {
-			return false, false
-		}
-	default:
-		return false, false
-	}
-}
-
-func (o *Integer) LessThan(v any) (bool, bool) {
-	switch v := v.(type) {
-	case *Integer:
-		return o.Value < v.Value, true
-	case Coercible:
-		if cast, ok := o.CoerceTo(o.Type()); ok {
-			return o.Equal(cast)
-		} else {
-			return false, false
-		}
-	default:
-		return false, false
-	}
-}
-
-var _ conformance.Comparable = (*Integer)(nil)
 
 // MARK: BasicArithmeticEvaluator
 

@@ -2,8 +2,6 @@ package object
 
 import (
 	"fmt"
-
-	"github.com/maddiesch/marble/pkg/object/conformance"
 )
 
 const (
@@ -40,40 +38,6 @@ func (o *StringObject) CoerceTo(t ObjectType) (Object, bool) {
 }
 
 var _ Object = (*StringObject)(nil)
-
-// MARK: Comparable
-
-func (o *StringObject) Equal(v any) (bool, bool) {
-	switch v := v.(type) {
-	case *StringObject:
-		return o.Value == v.Value, true
-	case Coercible:
-		if cast, ok := o.CoerceTo(o.Type()); ok {
-			return o.Equal(cast)
-		} else {
-			return false, false
-		}
-	default:
-		return false, false
-	}
-}
-
-func (o *StringObject) LessThan(v any) (bool, bool) {
-	switch v := v.(type) {
-	case *StringObject:
-		return o.Value < v.Value, true
-	case Coercible:
-		if cast, ok := o.CoerceTo(o.Type()); ok {
-			return o.Equal(cast)
-		} else {
-			return false, false
-		}
-	default:
-		return false, false
-	}
-}
-
-var _ conformance.Comparable = (*StringObject)(nil)
 
 // MARK: ComparisionEvaluator
 
