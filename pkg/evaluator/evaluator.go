@@ -3,6 +3,7 @@ package evaluator
 import (
 	"fmt"
 
+	"github.com/maddiesch/marble/internal/slice"
 	"github.com/maddiesch/marble/pkg/ast"
 	"github.com/maddiesch/marble/pkg/env"
 	"github.com/maddiesch/marble/pkg/evaluator/runtime"
@@ -60,6 +61,10 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 			)
 		}
 		return value, nil
+	case *ast.FunctionExpression:
+		return _evalFunctionExpression(env, node)
+	case *ast.CallExpression:
+		return _evalCallExpression(env, node)
 	default:
 		return nil, runtime.NewError(
 			runtime.InterpreterError,
@@ -68,6 +73,68 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 			runtime.ErrorValue("Node", node),
 		)
 	}
+}
+
+func _evalCallExpression(e *env.Env, node *ast.CallExpression) (object.Object, error) {
+	var closure *object.ClosureLiteral
+
+	switch fn := node.Function.(type) {
+	case *ast.IdentifierExpression:
+		lookup, ok := e.Get(fn.Value)
+		if ok {
+			if closure, ok = lookup.(*object.ClosureLiteral); !ok {
+				panic("unable to call non-closure literal")
+			}
+		}
+	case *ast.FunctionExpression:
+		eval, err := _evalFunctionExpression(e, fn)
+		if err != nil {
+			return nil, err
+		}
+		closure = eval
+	default:
+		panic("call expression supplied an unexpected type for the function")
+	}
+	if closure == nil {
+		panic("call expression unable to find closure")
+	}
+
+	if len(node.Arguments) != len(closure.ParameterList) {
+		return nil, runtime.NewError(runtime.ArgumentError,
+			"Unexpected number of arguments in function call",
+			runtime.ErrorValue("Expected", len(closure.ParameterList)),
+			runtime.ErrorValue("Received", len(node.Arguments)),
+		)
+	}
+
+	if !e.PushTo(closure.FrameID) {
+		return nil, runtime.NewError(runtime.InterpreterError,
+			"Unable to push to the expected execution state for function call!",
+		)
+	}
+	defer e.Restore()
+
+	e.Push()
+	defer e.Pop()
+
+	for i, arg := range node.Arguments {
+		name := closure.ParameterList[i]
+		val, err := Evaluate(e, arg)
+		if err != nil {
+			return nil, err
+		}
+
+		e.Set(name, val, false)
+	}
+
+	return _evalStatementList(e, closure.Body.StatementList, true, true)
+}
+
+func _evalFunctionExpression(e *env.Env, node *ast.FunctionExpression) (*object.ClosureLiteral, error) {
+	parameters := slice.Map(node.Parameters, func(l *ast.IdentifierExpression) string {
+		return l.Value
+	})
+	return object.Closure(parameters, node.BlockStatement, e.CurrentFrame()), nil
 }
 
 func _evalDeleteStatement(e *env.Env, node *ast.DeleteStatement) (object.Object, error) {

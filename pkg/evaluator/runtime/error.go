@@ -12,6 +12,7 @@ const (
 	InterpreterError       ErrorID = "InterpreterError"
 	UnknownIdentifierError ErrorID = "UnknownIdentifierError"
 	ConstantError          ErrorID = "ConstantError"
+	ArgumentError          ErrorID = "ArgumentError"
 )
 
 type Error struct {

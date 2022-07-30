@@ -1,27 +1,31 @@
 package env
 
 import (
+	"strings"
 	"sync"
 
+	"github.com/maddiesch/marble/internal/slice"
 	"github.com/maddiesch/marble/pkg/ast"
 	"github.com/maddiesch/marble/pkg/object"
 	"github.com/maddiesch/marble/pkg/version"
 )
 
 type Env struct {
-	mu     sync.RWMutex
-	lookup []*frame
-	fid    uint64
-	ptr    uint64
-	stack  []ast.Node
+	mu      sync.RWMutex
+	lookup  []*frame
+	restore [][]*frame
+	fid     uint64
+	ptr     uint64
+	stack   []ast.Node
 }
 
 func New() *Env {
 	e := &Env{
-		fid:    0,
-		ptr:    1_000_000,
-		lookup: []*frame{},
-		stack:  make([]ast.Node, 0, 32),
+		fid:     0,
+		ptr:     1_000_000,
+		lookup:  make([]*frame, 0, 8),
+		restore: make([][]*frame, 0, 4),
+		stack:   make([]ast.Node, 0, 32),
 	}
 
 	e.PushEval(&ast.Entrypoint{})
@@ -35,6 +39,45 @@ func New() *Env {
 	})
 
 	return e
+}
+
+func (e *Env) PushTo(id uint64) bool {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	index := -1
+	for i, f := range e.lookup {
+		if f.id == id {
+			index = i
+		}
+	}
+	if index < 0 {
+		return false
+	}
+
+	e.restore = append(e.restore, e.lookup)
+	e.lookup = e.lookup[:index+1]
+
+	return true
+}
+
+func (e *Env) Restore() {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	if len(e.restore) < 1 {
+		panic("unable to restore without pushing back to a previous frame")
+	}
+
+	e.lookup = e.restore[len(e.restore)-1]
+	e.restore = e.restore[:len(e.restore)-1]
+}
+
+func (e *Env) CurrentFrame() uint64 {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	return e.lookup[len(e.lookup)-1].id
 }
 
 func (e *Env) PushEval(node ast.Node) {
@@ -149,8 +192,8 @@ func (e *Env) getEntry(key string, recursively bool) *Entry {
 }
 
 func (e *Env) Delete(key string, currentFrameOnly bool) {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
+	e.mu.Lock()
+	defer e.mu.Unlock()
 
 	for i := len(e.lookup) - 1; i >= 0; i-- {
 		if e.lookup[i].delete(key) {
@@ -172,5 +215,17 @@ func (e *Env) Get(key string) (object.Object, bool) {
 }
 
 func (e *Env) DebugString() string {
-	return ""
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	var builder strings.Builder
+
+	builder.WriteString("Environment\n")
+	frames := slice.Map(e.lookup, func(f *frame) string {
+		return f.debugString(1)
+	})
+
+	builder.WriteString(strings.Join(frames, "\n"))
+
+	return builder.String()
 }
