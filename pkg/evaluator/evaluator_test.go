@@ -11,9 +11,9 @@ import (
 func TestExecute(t *testing.T) {
 	t.Run("Function", func(t *testing.T) {
 		tests := test.TestingTuple2[string, any]{
-			// {One: `const add = fn(a, b) { a + b }; add(1, 5)`, Two: int64(6)},
-			// {One: `const add5 = fn(a) { a() + 5 }; add5(fn() { 10 });`, Two: int64(15)},
-			// {One: `fn(n) {}(5)`, Two: nil},
+			{One: `const add = fn(a, b) { a + b }; add(1, 5)`, Two: int64(6)},
+			{One: `const add5 = fn(a) { a() + 5 }; add5(fn() { 10 });`, Two: int64(15)},
+			{One: `fn(n) {}(5)`, Two: nil},
 			{One: `let factorial = fn(n) { if (n == 0) { 1 } else { n * factorial(n - 1) } }; factorial(5)`, Two: int64(120)},
 		}
 
