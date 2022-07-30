@@ -25,3 +25,7 @@ type ComparisionEvaluator interface {
 
 	PerformLessThanComparison(Object) (bool, error)
 }
+
+type ConcatingEvaluator interface {
+	Concat(Object) (Object, error)
+}

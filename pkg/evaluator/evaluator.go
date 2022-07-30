@@ -276,6 +276,11 @@ func _evalInfixOperator(n *ast.InfixExpression, lhs, rhs object.Object) (object.
 		}
 	}
 
+	// Handle Concatenation
+	if lConcat, ok := lhs.(object.ConcatingEvaluator); ok && n.Operator == "+" {
+		return lConcat.Concat(rhs)
+	}
+
 	switch n.Operator {
 	case "<", "<=", ">", ">=":
 		return _evalComparisonInfixExpression(n, lhs, rhs)

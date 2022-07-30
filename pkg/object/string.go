@@ -60,3 +60,14 @@ func (o *StringObject) PerformLessThanComparison(r Object) (bool, error) {
 }
 
 var _ ComparisionEvaluator = (*StringObject)(nil)
+
+func (s *StringObject) Concat(r Object) (Object, error) {
+	r, err := CoerceTo(r, STRING)
+	if err != nil {
+		return nil, err
+	}
+
+	return String(s.Value + r.(*StringObject).Value), nil
+}
+
+var _ ConcatingEvaluator = (*StringObject)(nil)

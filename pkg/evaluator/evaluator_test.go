@@ -9,6 +9,20 @@ import (
 )
 
 func TestExecute(t *testing.T) {
+	t.Run("String Concat", func(t *testing.T) {
+		tests := test.TestingTuple2[string, any]{
+			{One: `"Hello" + " " + "World" + "!"`, Two: "Hello World!"},
+		}
+
+		tests.Each(func(source string, expected any) {
+			t.Run(source, func(t *testing.T) {
+				result := test.Eval(t, source)
+
+				assert.Equal(t, expected, result.GoValue())
+			})
+		})
+	})
+
 	t.Run("NativeFunction", func(t *testing.T) {
 		tests := test.TestingTuple2[string, any]{
 			{One: `print_description("Hello World!")`, Two: "Hello World!"},
