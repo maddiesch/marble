@@ -3,7 +3,7 @@ package ast
 import (
 	"strings"
 
-	"github.com/maddiesch/marble/internal/slice"
+	"github.com/maddiesch/marble/internal/collection"
 	"github.com/maddiesch/marble/pkg/token"
 )
 
@@ -21,7 +21,7 @@ func (e *CallExpression) SourceToken() token.Token {
 func (e *CallExpression) String() string {
 	var builder strings.Builder
 
-	args := slice.Map(e.Arguments, func(a Expression) string {
+	args := collection.MapSlice(e.Arguments, func(a Expression) string {
 		return a.String()
 	})
 

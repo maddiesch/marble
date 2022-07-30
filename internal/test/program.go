@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maddiesch/marble/internal/slice"
+	"github.com/maddiesch/marble/internal/collection"
 	"github.com/maddiesch/marble/pkg/ast"
 	"github.com/maddiesch/marble/pkg/env"
 	"github.com/maddiesch/marble/pkg/evaluator"
@@ -27,7 +27,7 @@ func Eval(t TestingT, source ...string) object.Object {
 }
 
 func CreateProgram(t TestingT, source ...string) *ast.Program {
-	lexers := slice.MapI(source, func(i int, s string) lexer.Lexer {
+	lexers := collection.MapSliceI(source, func(i int, s string) lexer.Lexer {
 		l, err := lexer.New(fmt.Sprintf("%s+%d", t.Name(), i), strings.NewReader(s))
 
 		require.NoError(t, err, "Failed to create lexer from source")

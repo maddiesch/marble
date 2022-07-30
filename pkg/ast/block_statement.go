@@ -3,7 +3,7 @@ package ast
 import (
 	"strings"
 
-	"github.com/maddiesch/marble/internal/slice"
+	"github.com/maddiesch/marble/internal/collection"
 	"github.com/maddiesch/marble/pkg/token"
 )
 
@@ -22,7 +22,7 @@ func (s *BlockStatement) String() string {
 
 	builder.WriteString("{ ")
 
-	statements := slice.Map(s.StatementList, func(s Statement) string {
+	statements := collection.MapSlice(s.StatementList, func(s Statement) string {
 		return s.String()
 	})
 

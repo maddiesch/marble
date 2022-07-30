@@ -4,7 +4,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/maddiesch/marble/internal/slice"
+	"github.com/maddiesch/marble/internal/collection"
 	"github.com/maddiesch/marble/pkg/ast"
 	"github.com/maddiesch/marble/pkg/native"
 	"github.com/maddiesch/marble/pkg/object"
@@ -238,7 +238,7 @@ func (e *Env) DebugString() string {
 	var builder strings.Builder
 
 	builder.WriteString("Environment\n")
-	frames := slice.Map(e.lookup, func(f *frame) string {
+	frames := collection.MapSlice(e.lookup, func(f *frame) string {
 		return f.debugString(1)
 	})
 

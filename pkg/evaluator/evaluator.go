@@ -3,7 +3,7 @@ package evaluator
 import (
 	"fmt"
 
-	"github.com/maddiesch/marble/internal/slice"
+	"github.com/maddiesch/marble/internal/collection"
 	"github.com/maddiesch/marble/pkg/ast"
 	"github.com/maddiesch/marble/pkg/env"
 	"github.com/maddiesch/marble/pkg/evaluator/runtime"
@@ -170,7 +170,7 @@ func _evalCallExpression(e *env.Env, node *ast.CallExpression) (object.Object, e
 }
 
 func _evalFunctionExpression(e *env.Env, node *ast.FunctionExpression) (*object.ClosureLiteral, error) {
-	parameters := slice.Map(node.Parameters, func(l *ast.IdentifierExpression) string {
+	parameters := collection.MapSlice(node.Parameters, func(l *ast.IdentifierExpression) string {
 		return l.Value
 	})
 	return object.Closure(parameters, node.BlockStatement, e.CurrentFrame()), nil
