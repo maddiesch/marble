@@ -11,4 +11,5 @@ const (
 	Product     // *
 	Prefix      // -X or !X
 	Call        // function(X)
+	Subscript   // foo[1]
 )

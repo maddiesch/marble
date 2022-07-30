@@ -8,8 +8,10 @@ import (
 )
 
 type UnexpectedTokenError struct {
-	Token    token.Token
-	Expected token.Kind
+	Token       token.Token
+	Expected    token.Kind
+	ExpectedNot *token.Kind
+	Alternate   *token.Kind
 }
 
 func (e UnexpectedTokenError) Error() string {

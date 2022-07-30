@@ -48,6 +48,20 @@ func TestLexer(t *testing.T) {
 			})
 		})
 
+		t.Run("ArrayLiteral", func(t *testing.T) {
+			tokens := ParseTokenSlice(t, strings.NewReader(`[1, "foo", 3.14]`))
+
+			tokens.assert(t,
+				token.LBracket,
+				token.Integer,
+				token.Comma,
+				token.String,
+				token.Comma,
+				token.Float,
+				token.RBracket,
+			)
+		})
+
 		t.Run("keywords", func(t *testing.T) {
 			source := strings.NewReader(`let const fn return if else not nil false true`)
 

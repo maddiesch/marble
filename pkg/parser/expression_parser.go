@@ -7,6 +7,89 @@ import (
 	"github.com/maddiesch/marble/pkg/token"
 )
 
+func (p *Parser) parseSubscriptExpression(left ast.Expression) (ast.Expression, error) {
+	defer untrace(trace("parseSubscriptExpression"))
+
+	startToken := p.currentToken
+
+	if p.nextTokenIs(token.RBracket) {
+		not := token.RBracket
+		return nil, UnexpectedTokenError{
+			Token:       p.nextToken,
+			ExpectedNot: &(not),
+		}
+	}
+
+	p.advance() // Move past bracket
+
+	expr, err := p.parseExpression(Lowest)
+	if err != nil {
+		return nil, err
+	}
+
+	if p.nextTokenIs(token.RBracket) {
+		p.advance() // Move past bracket
+	} else {
+		return nil, UnexpectedTokenError{
+			Token:    p.nextToken,
+			Expected: token.RBracket,
+		}
+	}
+
+	return &ast.SubscriptExpression{Token: startToken, Receiver: left, Value: expr}, nil
+}
+
+func (p *Parser) parseExpressionList(sep, last token.Kind) ([]ast.Expression, error) {
+	defer untrace(trace("parseExpressionList"))
+
+	list := make([]ast.Expression, 0)
+
+	for !p.nextTokenIs(last) {
+		p.advance() // Move to next token
+
+		expr, err := p.parseExpression(Lowest)
+		if err != nil {
+			return nil, err
+		}
+
+		if !p.nextTokenIs(sep) && !p.nextTokenIs(last) {
+			return nil, UnexpectedTokenError{
+				Token:     p.nextToken,
+				Expected:  sep,
+				Alternate: &(last),
+			}
+		}
+		if p.nextTokenIs(sep) {
+			p.advance() // Consume the comma
+		}
+
+		list = append(list, expr)
+	}
+
+	if p.nextTokenIs(last) {
+		p.advance()
+	}
+
+	return list, nil
+}
+
+func (p *Parser) parseBracketExpression() (ast.Expression, error) {
+	defer untrace(trace("parseBracketExpression"))
+
+	array := &ast.ArrayExpression{
+		Token: p.currentToken,
+	}
+
+	elements, err := p.parseExpressionList(token.Comma, token.RBracket)
+	if err != nil {
+		return nil, err
+	}
+
+	array.Elements = elements
+
+	return array, nil
+}
+
 func (p *Parser) parseDefinedExpression() (ast.Expression, error) {
 	defer untrace(trace("parseDefinedExpression"))
 
@@ -404,7 +487,7 @@ func (p *Parser) parseCallExpression(fn ast.Expression) (ast.Expression, error) 
 		Function: fn,
 	}
 
-	arguments, err := p.parseCallArguments()
+	arguments, err := p.parseExpressionList(token.Comma, token.RParen)
 	if err != nil {
 		return nil, err
 	}
@@ -412,54 +495,6 @@ func (p *Parser) parseCallExpression(fn ast.Expression) (ast.Expression, error) 
 	call.Arguments = arguments
 
 	return call, nil
-}
-
-func (p *Parser) parseCallArguments() ([]ast.Expression, error) {
-	defer untrace(trace("parseCallArguments"))
-
-	result := make([]ast.Expression, 0)
-
-	if p.nextTokenIs(token.RParen) {
-		p.advance()
-		return result, nil
-	}
-
-	p.advance()
-
-	assignCurrentExpression := func() error {
-		expr, err := p.parseExpression(Lowest)
-		if err != nil {
-			return err
-		}
-
-		result = append(result, expr)
-
-		return nil
-	}
-
-	if err := assignCurrentExpression(); err != nil {
-		return nil, err
-	}
-
-	for p.nextTokenIs(token.Comma) {
-		p.advance() // Current is now comma
-		p.advance() // Advance to the next expression
-
-		if err := assignCurrentExpression(); err != nil {
-			return nil, err
-		}
-	}
-
-	if !p.nextTokenIs(token.RParen) {
-		return nil, UnexpectedTokenError{
-			Token:    p.nextToken,
-			Expected: token.RParen,
-		}
-	}
-
-	p.advance() // Consume the RParen
-
-	return result, nil
 }
 
 func (p *Parser) parseDoubleColonExpression(left ast.Expression) (ast.Expression, error) {

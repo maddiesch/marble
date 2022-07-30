@@ -59,6 +59,7 @@ func (p *Parser) init() *Parser {
 		token.LParen:           Call,
 		token.DoubleColon:      Call,
 		token.Period:           Call,
+		token.LBracket:         Subscript,
 	}
 
 	p.prefixParser = make(map[token.Kind]ParserPrefixFunc)
@@ -79,6 +80,7 @@ func (p *Parser) init() *Parser {
 	p.registerPrefixParser(token.Function, p.parseFunctionExpression)
 	p.registerPrefixParser(token.Do, p.parseDoExpression)
 	p.registerPrefixParser(token.Defined, p.parseDefinedExpression)
+	p.registerPrefixParser(token.LBracket, p.parseBracketExpression)
 
 	p.registerInfixParser(token.Plus, p.parseInfixExpression)
 	p.registerInfixParser(token.Minus, p.parseInfixExpression)
@@ -93,6 +95,7 @@ func (p *Parser) init() *Parser {
 	p.registerInfixParser(token.LParen, p.parseCallExpression)
 	p.registerInfixParser(token.DoubleColon, p.parseDoubleColonExpression)
 	p.registerInfixParser(token.Period, p.parsePeriodExpression)
+	p.registerInfixParser(token.LBracket, p.parseSubscriptExpression)
 
 	// Advance 2 tokens to pre-load the next & current tokens
 	p.advance()

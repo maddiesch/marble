@@ -13,6 +13,33 @@ import (
 )
 
 func TestParserRun(t *testing.T) {
+	t.Run("subscript", func(t *testing.T) {
+		pro := createProgramFromSource(t, `value[1]`)
+
+		require.Equal(t, 1, len(pro.StatementList))
+
+		expr := test.RequireType(t, &ast.ExpressionStatement{}, pro.StatementList[0]).Expression
+
+		assert.Equal(t, "SUBSCRIPT(ID(value), Int(1))", expr.String())
+	})
+
+	t.Run("array literal", func(t *testing.T) {
+		pro := createProgramFromSource(t, `[1, 3.14, "Hello World", fn() { true }]`)
+
+		require.Equal(t, 1, len(pro.StatementList))
+
+		array := test.RequireType(t, &ast.ArrayExpression{},
+			test.RequireType(t, &ast.ExpressionStatement{}, pro.StatementList[0]).Expression,
+		)
+
+		require.Equal(t, 4, len(array.Elements))
+
+		assert.IsType(t, &ast.IntegerExpression{}, array.Elements[0])
+		assert.IsType(t, &ast.FloatExpression{}, array.Elements[1])
+		assert.IsType(t, &ast.StringExpression{}, array.Elements[2])
+		assert.IsType(t, &ast.FunctionExpression{}, array.Elements[3])
+	})
+
 	t.Run("defined statement", func(t *testing.T) {
 		t.Run("return statement", func(t *testing.T) {
 			pro := createProgramFromSource(t, `return defined foo;`)
@@ -88,6 +115,7 @@ func TestParserRun(t *testing.T) {
 			{"(5 + 5) * 2", "((Int(5) + Int(5)) * Int(2))"},
 			{"-(5 + 5)", "NEG((Int(5) + Int(5)))"},
 			{"!(true == true)", "NOT((Bool(true) == Bool(true)))"},
+			{"a * [1, 2, 3, 4][b * c] * d", "((ID(a) * SUBSCRIPT(ARRAY[Int(1), Int(2), Int(3), Int(4)], (ID(b) * ID(c)))) * ID(d))"},
 		}
 
 		for _, tc := range tests {
