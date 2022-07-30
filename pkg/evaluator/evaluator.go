@@ -75,6 +75,33 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 	}
 }
 
+func _evalNativeFunction(e *env.Env, fn *object.NativeFunctionObject, node *ast.CallExpression) (object.Object, error) {
+	if len(node.Arguments) != fn.ArgumentCount {
+		return nil, runtime.NewError(runtime.ArgumentError,
+			"Unexpected number of arguments in function call",
+			runtime.ErrorValue("Expected", fn.ArgumentCount),
+			runtime.ErrorValue("Received", len(node.Arguments)),
+		)
+	}
+
+	arguments := make([]object.Object, len(node.Arguments))
+	for i, arg := range node.Arguments {
+		val, err := Evaluate(e, arg)
+		if err != nil {
+			return nil, err
+		}
+		arguments[i] = val
+	}
+
+	e.PushTo(1) // Always push to start frame
+	defer e.Restore()
+
+	e.Push()
+	defer e.Pop()
+
+	return fn.Body(e, arguments)
+}
+
 func _evalCallExpression(e *env.Env, node *ast.CallExpression) (object.Object, error) {
 	var closure *object.ClosureLiteral
 
@@ -82,7 +109,12 @@ func _evalCallExpression(e *env.Env, node *ast.CallExpression) (object.Object, e
 	case *ast.IdentifierExpression:
 		lookup, ok := e.Get(fn.Value)
 		if ok {
-			if closure, ok = lookup.(*object.ClosureLiteral); !ok {
+			switch fn := lookup.(type) {
+			case *object.ClosureLiteral:
+				closure = fn
+			case *object.NativeFunctionObject:
+				return _evalNativeFunction(e, fn, node)
+			default:
 				panic("unable to call non-closure literal")
 			}
 		}

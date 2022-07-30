@@ -6,6 +6,7 @@ import (
 
 	"github.com/maddiesch/marble/internal/slice"
 	"github.com/maddiesch/marble/pkg/ast"
+	"github.com/maddiesch/marble/pkg/native"
 	"github.com/maddiesch/marble/pkg/object"
 	"github.com/maddiesch/marble/pkg/version"
 )
@@ -37,6 +38,8 @@ func New() *Env {
 		protected: true,
 		mutable:   false,
 	})
+
+	native.Bind(e)
 
 	return e
 }
@@ -149,22 +152,33 @@ func (e *Env) StateFor(key string, currentFrameOnly bool) LabelState {
 	}
 }
 
+func (e *Env) SetProtected(key string, value object.Object) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	e.set(key, &Entry{
+		Value:     value,
+		mutable:   false,
+		protected: false,
+	})
+}
+
 func (e *Env) Set(key string, value object.Object, mutable bool) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	e.ptr += 1
-
 	e.set(key, &Entry{
 		Value:   value,
-		pointer: e.ptr,
 		mutable: mutable,
 	})
 }
 
 func (e *Env) set(key string, entry *Entry) {
+	e.ptr += 1
+
 	frame := e.lookup[len(e.lookup)-1]
 	entry.frame = frame.id
+	entry.pointer = e.ptr
 	frame.set(key, entry)
 }
 
@@ -229,3 +243,5 @@ func (e *Env) DebugString() string {
 
 	return builder.String()
 }
+
+var _ object.Binding = (*Env)(nil)
