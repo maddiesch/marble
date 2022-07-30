@@ -20,6 +20,7 @@ const (
 	Do       Kind = "DO"
 	Delete   Kind = "DELETE"
 	Defined  Kind = "DEFINED"
+	While    Kind = "WHILE"
 
 	// Identifiers & Literals
 	Identifier   Kind = "IDENT"

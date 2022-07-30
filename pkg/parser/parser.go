@@ -77,6 +77,7 @@ func (p *Parser) init() *Parser {
 	p.registerPrefixParser(token.LiteralFalse, p.parseBooleanExpression)
 	p.registerPrefixParser(token.LParen, p.parseGroupedExpression)
 	p.registerPrefixParser(token.If, p.parseIfExpression)
+	p.registerPrefixParser(token.While, p.parseWhileExpression)
 	p.registerPrefixParser(token.Function, p.parseFunctionExpression)
 	p.registerPrefixParser(token.Do, p.parseDoExpression)
 	p.registerPrefixParser(token.Defined, p.parseDefinedExpression)

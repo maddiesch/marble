@@ -319,6 +319,70 @@ func (p *Parser) parseGroupedExpression() (ast.Expression, error) {
 	return exp, nil
 }
 
+func (p *Parser) _parseConditionalExpressionBlockStatement() (ast.Expression, *ast.BlockStatement, error) {
+	defer untrace(trace("_parseConditionalExpressionBlockStatement"))
+
+	if !p.currentTokenIs(token.LParen) {
+		return nil, nil, UnexpectedTokenError{
+			Token:    p.nextToken,
+			Expected: token.LParen,
+		}
+	}
+
+	condition, err := p.parseExpression(Lowest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if !p.currentTokenIs(token.RParen) {
+		return nil, nil, UnexpectedTokenError{
+			Token:    p.currentToken,
+			Expected: token.RParen,
+		}
+	}
+	p.advance() // Consume )
+
+	if !p.currentTokenIs(token.LBrace) {
+		return nil, nil, UnexpectedTokenError{
+			Token:    p.currentToken,
+			Expected: token.LBrace,
+		}
+	}
+
+	block, err := p.parseBlockStatement()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if !p.currentTokenIs(token.RBrace) {
+		return nil, nil, UnexpectedTokenError{
+			Token:    p.currentToken,
+			Expected: token.RBrace,
+		}
+	}
+
+	return condition, block, nil
+}
+
+func (p *Parser) parseWhileExpression() (ast.Expression, error) {
+	defer untrace(trace("parseWhileExpression"))
+
+	startToken := p.currentToken
+
+	p.advance() // Consume WHILE
+
+	condition, block, err := p._parseConditionalExpressionBlockStatement()
+	if err != nil {
+		return nil, err
+	}
+
+	return &ast.WhileExpression{
+		Token:     startToken,
+		Condition: condition,
+		Block:     block,
+	}, nil
+}
+
 func (p *Parser) parseIfExpression() (ast.Expression, error) {
 	defer untrace(trace("parseIfExpression"))
 
@@ -326,41 +390,14 @@ func (p *Parser) parseIfExpression() (ast.Expression, error) {
 		Token: p.currentToken,
 	}
 
-	if !p.nextTokenIs(token.LParen) {
-		return nil, UnexpectedTokenError{
-			Token:    p.nextToken,
-			Expected: token.LParen,
-		}
-	}
 	p.advance() // Consume IF
 
-	condition, err := p.parseExpression(Lowest)
+	condition, trueBlock, err := p._parseConditionalExpressionBlockStatement()
 	if err != nil {
 		return nil, err
 	}
-
-	if !p.currentTokenIs(token.RParen) {
-		return nil, UnexpectedTokenError{
-			Token:    p.currentToken,
-			Expected: token.RParen,
-		}
-	}
-	p.advance() // Consume )
 
 	expr.Condition = condition
-
-	if !p.currentTokenIs(token.LBrace) {
-		return nil, UnexpectedTokenError{
-			Token:    p.currentToken,
-			Expected: token.LBrace,
-		}
-	}
-
-	trueBlock, err := p.parseBlockStatement()
-	if err != nil {
-		return nil, err
-	}
-
 	expr.TrueStatement = trueBlock
 
 	if p.nextTokenIs(token.Else) {

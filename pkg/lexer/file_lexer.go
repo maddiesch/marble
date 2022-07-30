@@ -125,6 +125,7 @@ func (f *FileLexer) init() (*FileLexer, error) {
 	f.RegisterKeyword("do", token.Do)
 	f.RegisterKeyword("delete", token.Delete)
 	f.RegisterKeyword("defined", token.Defined)
+	f.RegisterKeyword("while", token.While)
 
 	f.RegisterSingleRuneOperator('=', token.Assign)
 	f.RegisterSingleRuneOperator('+', token.Plus)

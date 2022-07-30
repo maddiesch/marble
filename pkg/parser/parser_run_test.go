@@ -13,6 +13,16 @@ import (
 )
 
 func TestParserRun(t *testing.T) {
+	t.Run("while", func(t *testing.T) {
+		pro := createProgramFromSource(t, `while (false) { 1 }`)
+
+		require.Equal(t, 1, len(pro.StatementList))
+
+		expr := test.RequireType(t, &ast.ExpressionStatement{}, pro.StatementList[0]).Expression
+
+		assert.Equal(t, "WHILE(Bool(false), { EXPR: Int(1) })", expr.String())
+	})
+
 	t.Run("subscript", func(t *testing.T) {
 		pro := createProgramFromSource(t, `value[1]`)
 

@@ -32,6 +32,7 @@ func TestLexer(t *testing.T) {
 				{One: `42`, Two: token.Integer, Three: "42"},
 				{One: "`", Two: token.Invalid, Three: "`"},
 				{One: "// Comment", Two: token.Comment, Three: "// Comment"},
+				{One: "while", Two: token.While, Three: "while"},
 			}
 
 			tests.Each(func(source string, expectedKind token.Kind, expectedValue string) {
