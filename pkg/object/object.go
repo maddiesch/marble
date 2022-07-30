@@ -29,3 +29,7 @@ type ComparisionEvaluator interface {
 type ConcatingEvaluator interface {
 	Concat(Object) (Object, error)
 }
+
+type LengthEvaluator interface {
+	Len() int
+}

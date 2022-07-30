@@ -9,9 +9,10 @@ import (
 )
 
 func TestExecute(t *testing.T) {
-	t.Run("String Concat", func(t *testing.T) {
+	t.Run("String", func(t *testing.T) {
 		tests := test.TestingTuple2[string, any]{
 			{One: `"Hello" + " " + "World" + "!"`, Two: "Hello World!"},
+			{One: `len("Hello World!")`, Two: int64(12)},
 		}
 
 		tests.Each(func(source string, expected any) {

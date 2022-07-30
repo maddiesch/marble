@@ -71,3 +71,9 @@ func (s *StringObject) Concat(r Object) (Object, error) {
 }
 
 var _ ConcatingEvaluator = (*StringObject)(nil)
+
+func (s *StringObject) Len() int {
+	return len(s.Value)
+}
+
+var _ LengthEvaluator = (*StringObject)(nil)
