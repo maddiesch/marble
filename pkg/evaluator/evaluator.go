@@ -1,6 +1,8 @@
 package evaluator
 
 import (
+	"fmt"
+
 	"github.com/maddiesch/marble/pkg/ast"
 	"github.com/maddiesch/marble/pkg/evaluator/runtime"
 	"github.com/maddiesch/marble/pkg/object"
@@ -11,14 +13,18 @@ func Evaluate(node ast.Node) (object.Object, error) {
 	switch node := node.(type) {
 	case *ast.Program:
 		return _evalStatementList(node.StatementList)
+	case *ast.BlockStatement:
+		return _evalStatementList(node.StatementList)
 	case *ast.ExpressionStatement:
 		return Evaluate(node.Expression)
 	case *ast.IntegerExpression:
-		return &object.Integer{Value: node.Value}, nil
+		return object.Int(node.Value), nil
 	case *ast.FloatExpression:
-		return &object.Floating{Value: node.Value}, nil
+		return object.Float(node.Value), nil
 	case *ast.BooleanExpression:
-		return &object.Boolean{Value: node.Value}, nil
+		return object.Bool(node.Value), nil
+	case *ast.StringExpression:
+		return object.String(node.Value), nil
 	case *ast.NullExpression:
 		return &object.Null{}, nil
 	case *ast.NegateExpression:
@@ -27,8 +33,35 @@ func Evaluate(node ast.Node) (object.Object, error) {
 		return _evalNotExpression(node)
 	case *ast.InfixExpression:
 		return _evalInfixExpression(node)
+	case *ast.IfExpression:
+		return _evalIfExpression(node)
 	default:
-		return &object.Void{}, nil
+		return nil, runtime.NewError(
+			runtime.InterpreterError,
+			"I haven't been taught how to interpret this node yet!",
+			runtime.ErrorValue("NodeType", fmt.Sprintf("%T", node)),
+			runtime.ErrorValue("Node", node),
+		)
+	}
+}
+
+func _evalIfExpression(node *ast.IfExpression) (object.Object, error) {
+	condition, err := Evaluate(node.Condition)
+	if err != nil {
+		return nil, err
+	}
+
+	boolean := object.Bool(false)
+	if err := object.CoerceToType(condition, boolean); err != nil {
+		return nil, err
+	}
+
+	if boolean.Value {
+		return Evaluate(node.TrueStatement)
+	} else if node.FalseStatement != nil {
+		return Evaluate(node.FalseStatement)
+	} else {
+		return &object.Null{}, nil
 	}
 }
 

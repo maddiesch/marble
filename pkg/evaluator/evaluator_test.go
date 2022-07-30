@@ -9,6 +9,23 @@ import (
 )
 
 func TestExecute(t *testing.T) {
+	t.Run("Conditionals", func(t *testing.T) {
+		tests := test.TestingTuple2[string, any]{
+			{One: "if (true) { 10 } else { 42 }", Two: int64(10)},
+			{One: "if (false) { 10 } else { 42 }", Two: int64(42)},
+			{One: "if (false) { 10 }", Two: nil},
+			{One: `if ("test" == "test") { 10 }`, Two: int64(10)},
+		}
+
+		tests.Each(func(source string, expected any) {
+			t.Run(source, func(t *testing.T) {
+				result := test.Eval(t, source)
+
+				assert.Equal(t, expected, result.GoValue())
+			})
+		})
+	})
+
 	t.Run("Integer Expression", func(t *testing.T) {
 		t.Run("boolean results", func(t *testing.T) {
 			tests := []test.Tuple2[bool, string]{

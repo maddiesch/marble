@@ -8,7 +8,8 @@ import (
 type ErrorID string
 
 const (
-	TypeError ErrorID = "TypeError"
+	TypeError        ErrorID = "TypeError"
+	InterpreterError ErrorID = "InterpreterError"
 )
 
 type Error struct {
