@@ -4,19 +4,23 @@ import (
 	"fmt"
 
 	"github.com/maddiesch/marble/pkg/ast"
+	"github.com/maddiesch/marble/pkg/env"
 	"github.com/maddiesch/marble/pkg/evaluator/runtime"
 	"github.com/maddiesch/marble/pkg/object"
 	"github.com/maddiesch/marble/pkg/object/math"
 )
 
-func Evaluate(node ast.Node) (object.Object, error) {
+func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
+	env.PushEval(node)
+	defer env.PopEval()
+
 	switch node := node.(type) {
 	case *ast.Program:
-		return _evalStatementList(node.StatementList, true)
+		return _evalStatementList(env, node.StatementList, false, true)
 	case *ast.BlockStatement:
-		return _evalStatementList(node.StatementList, false)
+		return _evalStatementList(env, node.StatementList, true, false)
 	case *ast.ExpressionStatement:
-		return Evaluate(node.Expression)
+		return Evaluate(env, node.Expression)
 	case *ast.IntegerExpression:
 		return object.Int(node.Value), nil
 	case *ast.FloatExpression:
@@ -28,15 +32,30 @@ func Evaluate(node ast.Node) (object.Object, error) {
 	case *ast.NullExpression:
 		return &object.Null{}, nil
 	case *ast.NegateExpression:
-		return _evalNegateExpression(node)
+		return _evalNegateExpression(env, node)
 	case *ast.NotExpression:
-		return _evalNotExpression(node)
+		return _evalNotExpression(env, node)
 	case *ast.InfixExpression:
-		return _evalInfixExpression(node)
+		return _evalInfixExpression(env, node)
 	case *ast.IfExpression:
-		return _evalIfExpression(node)
+		return _evalIfExpression(env, node)
 	case *ast.ReturnStatement:
-		return _evalReturnStatement(node)
+		return _evalReturnStatement(env, node)
+	case *ast.LetStatement:
+		return _evalAssignmentNode(env, node)
+	case *ast.ConstantStatement:
+		return _evalAssignmentNode(env, node)
+	case *ast.IdentifierExpression:
+		value, ok := env.Get(node.Value)
+		if !ok {
+			return nil, runtime.NewError(
+				runtime.UnknownIdentifierError,
+				"Undefined identifier",
+				runtime.ErrorValue("Identifier", node.Value),
+				runtime.ErrorValue("Location", node.Token.Location),
+			)
+		}
+		return value, nil
 	default:
 		return nil, runtime.NewError(
 			runtime.InterpreterError,
@@ -47,16 +66,34 @@ func Evaluate(node ast.Node) (object.Object, error) {
 	}
 }
 
-func _evalReturnStatement(node *ast.ReturnStatement) (object.Object, error) {
-	val, err := Evaluate(node.Expression)
+func _evalAssignmentNode(env *env.Env, node ast.AssignmentStatement) (object.Object, error) {
+	name := node.Label()
+	if !env.StateFor(name, true).Mutable() {
+		return nil, runtime.NewError(
+			runtime.ConstantError,
+			"Attempting to assign a new value to a constant",
+			runtime.ErrorValue("Location", node.SourceToken().Location),
+			runtime.ErrorValue("Label", name),
+		)
+	}
+	value, err := Evaluate(env, node.AssignmentExpression())
+	if err != nil {
+		return nil, err
+	}
+	env.Set(name, value, node.Mutable())
+	return value, nil
+}
+
+func _evalReturnStatement(env *env.Env, node *ast.ReturnStatement) (object.Object, error) {
+	val, err := Evaluate(env, node.Expression)
 	if err != nil {
 		return nil, err
 	}
 	return object.Return(val), nil
 }
 
-func _evalIfExpression(node *ast.IfExpression) (object.Object, error) {
-	condition, err := Evaluate(node.Condition)
+func _evalIfExpression(env *env.Env, node *ast.IfExpression) (object.Object, error) {
+	condition, err := Evaluate(env, node.Condition)
 	if err != nil {
 		return nil, err
 	}
@@ -67,20 +104,20 @@ func _evalIfExpression(node *ast.IfExpression) (object.Object, error) {
 	}
 
 	if boolean.Value {
-		return Evaluate(node.TrueStatement)
+		return Evaluate(env, node.TrueStatement)
 	} else if node.FalseStatement != nil {
-		return Evaluate(node.FalseStatement)
+		return Evaluate(env, node.FalseStatement)
 	} else {
 		return &object.Null{}, nil
 	}
 }
 
-func _evalInfixExpression(node *ast.InfixExpression) (object.Object, error) {
-	lhs, err := Evaluate(node.Left)
+func _evalInfixExpression(env *env.Env, node *ast.InfixExpression) (object.Object, error) {
+	lhs, err := Evaluate(env, node.Left)
 	if err != nil {
 		return nil, err
 	}
-	rhs, err := Evaluate(node.Right)
+	rhs, err := Evaluate(env, node.Right)
 	if err != nil {
 		return nil, err
 	}
@@ -175,8 +212,8 @@ func _evalBooleanResultInfixExpression(n *ast.InfixExpression, lhs, rhs object.O
 	return object.Bool(eq), nil
 }
 
-func _evalNotExpression(node *ast.NotExpression) (object.Object, error) {
-	right, err := Evaluate(node.Expression)
+func _evalNotExpression(env *env.Env, node *ast.NotExpression) (object.Object, error) {
+	right, err := Evaluate(env, node.Expression)
 	if err != nil {
 		return nil, err
 	}
@@ -190,8 +227,8 @@ func _evalNotExpression(node *ast.NotExpression) (object.Object, error) {
 	return object.Bool(!b.Value), nil
 }
 
-func _evalNegateExpression(n *ast.NegateExpression) (object.Object, error) {
-	obj, err := Evaluate(n.Expression)
+func _evalNegateExpression(env *env.Env, n *ast.NegateExpression) (object.Object, error) {
+	obj, err := Evaluate(env, n.Expression)
 	if err != nil {
 		return nil, err
 	}
@@ -209,12 +246,16 @@ func _evalNegateExpression(n *ast.NegateExpression) (object.Object, error) {
 // We need to know if we should return the return object or unwrap to the real
 // value. This is so that nested return statements will bubble up to the parent
 // to handle the return statement
-func _evalStatementList(list []ast.Statement, unwrapReturn bool) (object.Object, error) {
+func _evalStatementList(env *env.Env, list []ast.Statement, pushStack, unwrapReturn bool) (object.Object, error) {
+	if pushStack {
+		env.Push()
+		defer env.Pop()
+	}
 	var result object.Object
 	var err error
 
 	for _, node := range list {
-		result, err = Evaluate(node)
+		result, err = Evaluate(env, node)
 		if err != nil {
 			return nil, err
 		}

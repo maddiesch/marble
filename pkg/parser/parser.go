@@ -114,7 +114,7 @@ func (p *Parser) nextTokenIs(k token.Kind) bool {
 }
 
 func (p *Parser) encounteredErr(e error) {
-	if os.Getenv("MONKEY_ABORT_FAST") == "true" {
+	if os.Getenv("MARBLE_ABORT_FAST") == "true" {
 		spew.Dump(p)
 		panic(e)
 	}

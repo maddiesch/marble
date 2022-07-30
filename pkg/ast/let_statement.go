@@ -44,3 +44,17 @@ func (*LetStatement) Name() string {
 func (*LetStatement) _statementNode() {}
 
 var _ Statement = (*LetStatement)(nil)
+
+func (*LetStatement) Mutable() bool {
+	return true
+}
+
+func (s *LetStatement) Label() string {
+	return s.Identifier.Value
+}
+
+func (s *LetStatement) AssignmentExpression() Expression {
+	return s.Expression
+}
+
+var _ AssignmentStatement = (*LetStatement)(nil)

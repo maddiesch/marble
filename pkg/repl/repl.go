@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/maddiesch/marble/pkg/env"
 	"github.com/maddiesch/marble/pkg/evaluator"
 	"github.com/maddiesch/marble/pkg/lexer"
 	"github.com/maddiesch/marble/pkg/parser"
@@ -27,13 +28,15 @@ func Run(in io.Reader, out io.Writer) {
 
 	count := 0
 
+	e := env.New()
+
 	for {
 		count += 1
 
 		io.WriteString(out, fmt.Sprintf("%d%s", count, Prompt))
 
 		var buf bytes.Buffer
-		cont := processLine(count, scanner, &buf)
+		cont := processLine(e, count, scanner, &buf)
 		buf.WriteTo(out)
 
 		if !cont {
@@ -42,7 +45,7 @@ func Run(in io.Reader, out io.Writer) {
 	}
 }
 
-func processLine(i int, scanner *bufio.Scanner, buf *bytes.Buffer) bool {
+func processLine(e *env.Env, i int, scanner *bufio.Scanner, buf *bytes.Buffer) bool {
 	scanned := scanner.Scan()
 	if !scanned {
 		return false
@@ -80,7 +83,7 @@ func processLine(i int, scanner *bufio.Scanner, buf *bytes.Buffer) bool {
 		return true
 	}
 
-	out, err := evaluator.Evaluate(prog)
+	out, err := evaluator.Evaluate(e, prog)
 	if err != nil {
 		spew.Dump(err)
 		// TODO: Handler Error

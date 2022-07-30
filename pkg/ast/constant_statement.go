@@ -33,8 +33,8 @@ func (s *ConstantStatement) String() string {
 	return builder.String()
 }
 
-func (b *ConstantStatement) MarshalJSON() ([]byte, error) {
-	return marshalNode(b)
+func (s *ConstantStatement) MarshalJSON() ([]byte, error) {
+	return marshalNode(s)
 }
 
 func (*ConstantStatement) Name() string {
@@ -44,3 +44,17 @@ func (*ConstantStatement) Name() string {
 func (*ConstantStatement) _statementNode() {}
 
 var _ Statement = (*ConstantStatement)(nil)
+
+func (*ConstantStatement) Mutable() bool {
+	return false
+}
+
+func (s *ConstantStatement) Label() string {
+	return s.Identifier.Value
+}
+
+func (s *ConstantStatement) AssignmentExpression() Expression {
+	return s.Expression
+}
+
+var _ AssignmentStatement = (*ConstantStatement)(nil)

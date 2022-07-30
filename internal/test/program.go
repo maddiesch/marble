@@ -6,6 +6,7 @@ import (
 
 	"github.com/maddiesch/marble/internal/slice"
 	"github.com/maddiesch/marble/pkg/ast"
+	"github.com/maddiesch/marble/pkg/env"
 	"github.com/maddiesch/marble/pkg/evaluator"
 	"github.com/maddiesch/marble/pkg/lexer"
 	"github.com/maddiesch/marble/pkg/object"
@@ -16,7 +17,9 @@ import (
 func Eval(t TestingT, source ...string) object.Object {
 	pro := CreateProgram(t, source...)
 
-	out, err := evaluator.Evaluate(pro)
+	e := env.New()
+
+	out, err := evaluator.Evaluate(e, pro)
 
 	require.NoError(t, err)
 
