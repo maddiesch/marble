@@ -9,6 +9,22 @@ import (
 )
 
 func TestExecute(t *testing.T) {
+	t.Run("Return", func(t *testing.T) {
+		tests := test.TestingTuple2[string, any]{
+			{One: "1; return 2; 3;", Two: int64(2)},
+			{One: "return (1 + 4);", Two: int64(5)},
+			{One: "return (1 + 4) == true;", Two: false},
+		}
+
+		tests.Each(func(source string, expected any) {
+			t.Run(source, func(t *testing.T) {
+				result := test.Eval(t, source)
+
+				assert.Equal(t, expected, result.GoValue())
+			})
+		})
+	})
+
 	t.Run("Conditionals", func(t *testing.T) {
 		tests := test.TestingTuple2[string, any]{
 			{One: "if (true) { 10 } else { 42 }", Two: int64(10)},

@@ -35,6 +35,8 @@ func Evaluate(node ast.Node) (object.Object, error) {
 		return _evalInfixExpression(node)
 	case *ast.IfExpression:
 		return _evalIfExpression(node)
+	case *ast.ReturnStatement:
+		return _evalReturnStatement(node)
 	default:
 		return nil, runtime.NewError(
 			runtime.InterpreterError,
@@ -43,6 +45,14 @@ func Evaluate(node ast.Node) (object.Object, error) {
 			runtime.ErrorValue("Node", node),
 		)
 	}
+}
+
+func _evalReturnStatement(node *ast.ReturnStatement) (object.Object, error) {
+	val, err := Evaluate(node.Expression)
+	if err != nil {
+		return nil, err
+	}
+	return object.Return(val), nil
 }
 
 func _evalIfExpression(node *ast.IfExpression) (object.Object, error) {
@@ -204,6 +214,10 @@ func _evalStatementList(list []ast.Statement) (object.Object, error) {
 		result, err = Evaluate(node)
 		if err != nil {
 			return nil, err
+		}
+
+		if ret, ok := result.(*object.ReturnObject); ok {
+			return ret.Value, nil
 		}
 	}
 
