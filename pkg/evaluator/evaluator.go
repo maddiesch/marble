@@ -48,6 +48,10 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 		return _evalAssignmentNode(env, node)
 	case *ast.DeleteStatement:
 		return _evalDeleteStatement(env, node)
+	case *ast.ArrayExpression:
+		return _evalArrayNode(env, node)
+	case *ast.SubscriptExpression:
+		return _evalSubscriptNode(env, node)
 	case *ast.DefinedExpression:
 		return object.Bool(env.StateFor(node.Identifier.Value, false).Defined()), nil
 	case *ast.IdentifierExpression:
@@ -73,6 +77,42 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 			runtime.ErrorValue("Node", node),
 		)
 	}
+}
+
+func _evalSubscriptNode(e *env.Env, node *ast.SubscriptExpression) (object.Object, error) {
+	rec, err := Evaluate(e, node.Receiver)
+	if err != nil {
+		return nil, err
+	}
+
+	sub, ok := rec.(object.SubscriptEvaluator)
+	if !ok {
+		return nil, runtime.NewError(runtime.ArgumentError,
+			"Subscript receiver does not implement subscript accessor",
+			runtime.ErrorValue("Receiver", rec),
+		)
+	}
+
+	val, err := Evaluate(e, node.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	return sub.Subscript(val)
+}
+
+func _evalArrayNode(e *env.Env, node *ast.ArrayExpression) (object.Object, error) {
+	array := make([]object.Object, len(node.Elements))
+
+	for i, n := range node.Elements {
+		if v, err := Evaluate(e, n); err != nil {
+			return nil, err
+		} else {
+			array[i] = v
+		}
+	}
+
+	return object.Array(array), nil
 }
 
 func _evalNativeFunction(e *env.Env, fn *object.NativeFunctionObject, node *ast.CallExpression) (object.Object, error) {
@@ -103,34 +143,25 @@ func _evalNativeFunction(e *env.Env, fn *object.NativeFunctionObject, node *ast.
 }
 
 func _evalCallExpression(e *env.Env, node *ast.CallExpression) (object.Object, error) {
-	var closure *object.ClosureLiteral
+	fn, err := Evaluate(e, node.Function)
+	if err != nil {
+		return nil, err
+	}
 
-	switch fn := node.Function.(type) {
-	case *ast.IdentifierExpression:
-		lookup, ok := e.Get(fn.Value)
-		if ok {
-			switch fn := lookup.(type) {
-			case *object.ClosureLiteral:
-				closure = fn
-			case *object.NativeFunctionObject:
-				return _evalNativeFunction(e, fn, node)
-			default:
-				panic("unable to call non-closure literal")
-			}
-		}
-	case *ast.FunctionExpression:
-		eval, err := _evalFunctionExpression(e, fn)
-		if err != nil {
-			return nil, err
-		}
-		closure = eval
+	switch closure := fn.(type) {
+	case *object.ClosureLiteral:
+		return _evalCallClosureLiteral(e, closure, node)
+	case *object.NativeFunctionObject:
+		return _evalNativeFunction(e, closure, node)
 	default:
-		panic("call expression supplied an unexpected type for the function")
+		return nil, runtime.NewError(runtime.CallError,
+			"Unable to call non-function type",
+			runtime.ErrorValue("Function", fn),
+		)
 	}
-	if closure == nil {
-		panic("call expression unable to find closure")
-	}
+}
 
+func _evalCallClosureLiteral(e *env.Env, closure *object.ClosureLiteral, node *ast.CallExpression) (object.Object, error) {
 	if len(node.Arguments) != len(closure.ParameterList) {
 		return nil, runtime.NewError(runtime.ArgumentError,
 			"Unexpected number of arguments in function call",

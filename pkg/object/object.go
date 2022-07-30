@@ -33,3 +33,7 @@ type ConcatingEvaluator interface {
 type LengthEvaluator interface {
 	Len() int
 }
+
+type SubscriptEvaluator interface {
+	Subscript(Object) (Object, error)
+}

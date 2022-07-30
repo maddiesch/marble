@@ -9,6 +9,20 @@ import (
 )
 
 func TestExecute(t *testing.T) {
+	t.Run("Array", func(t *testing.T) {
+		tests := test.TestingTuple2[string, any]{
+			{One: `let a = [1, fn() { true }]; a[1]()`, Two: true},
+		}
+
+		tests.Each(func(source string, expected any) {
+			t.Run(source, func(t *testing.T) {
+				result := test.Eval(t, source)
+
+				assert.Equal(t, expected, result.GoValue())
+			})
+		})
+	})
+
 	t.Run("String", func(t *testing.T) {
 		tests := test.TestingTuple2[string, any]{
 			{One: `"Hello" + " " + "World" + "!"`, Two: "Hello World!"},

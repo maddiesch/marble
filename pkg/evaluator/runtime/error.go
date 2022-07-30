@@ -13,6 +13,7 @@ const (
 	UnknownIdentifierError ErrorID = "UnknownIdentifierError"
 	ConstantError          ErrorID = "ConstantError"
 	ArgumentError          ErrorID = "ArgumentError"
+	CallError              ErrorID = "CallError"
 )
 
 type Error struct {
