@@ -8,25 +8,28 @@ import (
 	"github.com/maddiesch/marble/pkg/ast"
 	"github.com/maddiesch/marble/pkg/native"
 	"github.com/maddiesch/marble/pkg/object"
+	"github.com/maddiesch/marble/pkg/stack"
 	"github.com/maddiesch/marble/pkg/version"
 )
 
 type Env struct {
-	mu      sync.RWMutex
-	lookup  []*frame
-	restore [][]*frame
-	fid     uint64
-	ptr     uint64
-	stack   []ast.Node
+	mu        sync.RWMutex
+	namespace *stack.Stack[string]
+	lookup    []*frame
+	restore   [][]*frame
+	fid       uint64
+	ptr       uint64
+	stack     []ast.Node
 }
 
 func New() *Env {
 	e := &Env{
-		fid:     0,
-		ptr:     1_000_000,
-		lookup:  make([]*frame, 0, 8),
-		restore: make([][]*frame, 0, 4),
-		stack:   make([]ast.Node, 0, 32),
+		fid:       0,
+		ptr:       1_000_000,
+		namespace: stack.New[string](),
+		lookup:    make([]*frame, 0, 8),
+		restore:   make([][]*frame, 0, 4),
+		stack:     make([]ast.Node, 0, 32),
 	}
 
 	e.PushEval(&ast.Entrypoint{})
@@ -242,6 +245,12 @@ func (e *Env) DebugString() string {
 	builder.WriteString(strings.Join(frames, "\n"))
 
 	return builder.String()
+}
+
+func (e *Env) PushNS(string) {
+}
+
+func (e *Env) PopNS() {
 }
 
 var _ object.Binding = (*Env)(nil)

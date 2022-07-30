@@ -30,3 +30,11 @@ type Tuple3[One any, Two any, Three any] struct {
 	Two   Two
 	Three Three
 }
+
+type TestingTuple3[One any, Two any, Three any] []Tuple3[One, Two, Three]
+
+func (t TestingTuple3[One, Two, Three]) Each(fn func(One, Two, Three)) {
+	for _, tt := range t {
+		fn(tt.One, tt.Two, tt.Three)
+	}
+}

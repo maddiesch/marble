@@ -7,7 +7,6 @@ import (
 	"unicode"
 
 	"github.com/maddiesch/marble/pkg/token"
-	"github.com/pkg/errors"
 )
 
 type FileLexer struct {
@@ -94,13 +93,6 @@ func (l *FileLexer) NextToken() token.Token {
 var _ Lexer = (*FileLexer)(nil)
 
 func New(name string, in io.Reader) (Lexer, error) {
-	if seeker, ok := in.(io.Seeker); ok {
-		_, err := seeker.Seek(0, io.SeekStart)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to seek the reader to the start of the file")
-		}
-	}
-
 	s := new(scanner.Scanner)
 	s = s.Init(in)
 	s.Filename = name

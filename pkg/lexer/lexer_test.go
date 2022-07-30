@@ -26,6 +26,28 @@ func TestNew(t *testing.T) {
 
 func TestLexer(t *testing.T) {
 	t.Run("FileLexer", func(t *testing.T) {
+		t.Run("Tokens", func(t *testing.T) {
+			tests := test.TestingTuple3[string, token.Kind, string]{
+				{One: `1.0`, Two: token.Float, Three: "1.0"},
+				{One: `42`, Two: token.Integer, Three: "42"},
+				{One: "`", Two: token.Invalid, Three: "`"},
+				{One: "// Comment", Two: token.Comment, Three: "// Comment"},
+			}
+
+			tests.Each(func(source string, expectedKind token.Kind, expectedValue string) {
+				t.Run(source, func(t *testing.T) {
+					l, err := lexer.New(t.Name(), strings.NewReader(source))
+
+					if assert.NoError(t, err, "failed to create lexer") {
+						first := l.NextToken()
+
+						assert.Equal(t, expectedKind, first.Kind)
+						assert.Equal(t, expectedValue, first.Value)
+					}
+				})
+			})
+		})
+
 		t.Run("keywords", func(t *testing.T) {
 			source := strings.NewReader(`let const fn return if else not nil false true`)
 
