@@ -1,6 +1,7 @@
 package env
 
 import (
+	"fmt"
 	"io"
 	"strings"
 	"sync"
@@ -265,6 +266,16 @@ func (e *Env) DebugString() string {
 		return f.debugString(1)
 	})
 
+	restoreFrames := collection.MapSlice(e.restore, func(f []*frame) string {
+		return strings.Join(collection.MapSlice(f, func(f *frame) string {
+			return fmt.Sprintf("%d", f.id)
+		}), ",")
+	})
+
+	builder.WriteString("Restore Frames:\n")
+	builder.WriteString(strings.Join(restoreFrames, "\n"))
+
+	builder.WriteString("Stack:\n")
 	builder.WriteString(strings.Join(frames, "\n"))
 
 	return builder.String()

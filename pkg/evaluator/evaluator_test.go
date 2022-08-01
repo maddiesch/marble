@@ -3,6 +3,7 @@ package evaluator_test
 import (
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/maddiesch/marble/internal/test"
 	"github.com/maddiesch/marble/pkg/object"
 	"github.com/stretchr/testify/assert"
@@ -300,5 +301,28 @@ func TestExecute(t *testing.T) {
 			assert.Equal(t, object.BOOLEAN, out.Type())
 			assert.Equal(t, tu.One, out.GoValue())
 		}
+	})
+}
+
+func TestExecuteEdgeCases(t *testing.T) {
+	t.Run("invalid stack frame id for function defined in while loop", func(t *testing.T) {
+		source := `
+		const indirect = fn(child) { child() }
+
+		let i = 0;
+		let indirect_called = false
+
+		while (i < 2) {
+			i = i + 1
+
+			indirect(fn() { indirect_called = true })
+		}
+
+		return indirect_called;
+		`
+
+		result := test.Eval(t, source)
+
+		spew.Dump(result)
 	})
 }
