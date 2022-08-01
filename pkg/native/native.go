@@ -1,8 +1,7 @@
 package native
 
 import (
-	"io"
-
+	"github.com/maddiesch/marble/pkg/binding"
 	"github.com/maddiesch/marble/pkg/evaluator/runtime"
 	"github.com/maddiesch/marble/pkg/object"
 	"github.com/maddiesch/marble/pkg/version"
@@ -14,23 +13,24 @@ var Functions = map[string]*object.NativeFunctionObject{
 	"len":               object.NativeFunction(1, _len),
 }
 
-func Bind(b object.Binding) {
+func Bind(b *binding.Binding[object.Object]) {
 	for k, fn := range Functions {
-		b.SetProtected(k, fn)
+		b.Set(k, fn, binding.F_PROTECTED|binding.F_CONST|binding.F_NATIVE)
 	}
 }
 
-func _printDescription(b object.Binding, args []object.Object) (object.Object, error) {
-	io.WriteString(b.Stderr(), args[0].Description()+"\n")
+func _printDescription(b *binding.Binding[object.Object], args []object.Object) (object.Object, error) {
+	// TODO: Fix print description
+	// io.WriteString(b.Stderr(), args[0].Description()+"\n")
 
 	return args[0], nil
 }
 
-func _marbleVersion(object.Binding, []object.Object) (object.Object, error) {
+func _marbleVersion(*binding.Binding[object.Object], []object.Object) (object.Object, error) {
 	return object.String(version.Current), nil
 }
 
-func _len(_ object.Binding, args []object.Object) (object.Object, error) {
+func _len(_ *binding.Binding[object.Object], args []object.Object) (object.Object, error) {
 	if o, ok := args[0].(object.LengthEvaluator); ok {
 		return object.Int(o.Len()), nil
 	} else {

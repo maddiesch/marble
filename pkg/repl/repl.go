@@ -9,9 +9,10 @@ import (
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/maddiesch/marble/pkg/env"
+	"github.com/maddiesch/marble/pkg/binding"
 	"github.com/maddiesch/marble/pkg/evaluator"
 	"github.com/maddiesch/marble/pkg/lexer"
+	"github.com/maddiesch/marble/pkg/object"
 	"github.com/maddiesch/marble/pkg/parser"
 	"github.com/maddiesch/marble/pkg/version"
 )
@@ -26,24 +27,17 @@ const (
 	HelpCommand = ":help"
 )
 
-var Builtin = map[string]func(*env.Env, io.Writer) bool{
-	ExitCommand: func(*env.Env, io.Writer) bool {
+var Builtin = map[string]func(*binding.Binding[object.Object], io.Writer) bool{
+	ExitCommand: func(*binding.Binding[object.Object], io.Writer) bool {
 		return false
 	},
-	HelpCommand: func(_ *env.Env, out io.Writer) bool {
+	HelpCommand: func(_ *binding.Binding[object.Object], out io.Writer) bool {
 		io.WriteString(out, fmt.Sprintf("Marble R.E.P.L. Help (%s)", version.Current))
 		io.WriteString(out, "\n")
 		return true
 	},
-	":dump": func(e *env.Env, out io.Writer) bool {
-		return true
-	},
-	":push": func(e *env.Env, _ io.Writer) bool {
-		e.Push()
-		return true
-	},
-	":pop": func(e *env.Env, _ io.Writer) bool {
-		e.Pop()
+	":dump": func(e *binding.Binding[object.Object], out io.Writer) bool {
+		fmt.Fprintf(out, e.DebugString())
 		return true
 	},
 }
@@ -53,7 +47,7 @@ func Run(in io.Reader, out io.Writer) {
 
 	count := 0
 
-	e := env.New(os.Stdout, os.Stderr)
+	b := evaluator.NewBinding()
 
 	for {
 		count += 1
@@ -61,7 +55,7 @@ func Run(in io.Reader, out io.Writer) {
 		io.WriteString(out, fmt.Sprintf("%d%s", count, Prompt))
 
 		var buf bytes.Buffer
-		cont := processLine(e, count, scanner, &buf)
+		cont := processLine(b, count, scanner, &buf)
 		buf.WriteTo(out)
 
 		if !cont {
@@ -70,7 +64,7 @@ func Run(in io.Reader, out io.Writer) {
 	}
 }
 
-func processLine(e *env.Env, i int, scanner *bufio.Scanner, buf *bytes.Buffer) bool {
+func processLine(b *binding.Binding[object.Object], i int, scanner *bufio.Scanner, buf *bytes.Buffer) bool {
 	scanned := scanner.Scan()
 	if !scanned {
 		return false
@@ -79,7 +73,7 @@ func processLine(e *env.Env, i int, scanner *bufio.Scanner, buf *bytes.Buffer) b
 	line := scanner.Text()
 
 	if fn, ok := Builtin[strings.TrimSpace(line)]; ok {
-		return fn(e, buf)
+		return fn(b, buf)
 	}
 
 	l, err := lexer.New("[REPL]", strings.NewReader(line))
@@ -104,7 +98,7 @@ func processLine(e *env.Env, i int, scanner *bufio.Scanner, buf *bytes.Buffer) b
 		return true
 	}
 
-	out, err := evaluator.Evaluate(e, prog)
+	out, err := evaluator.Evaluate(b, prog)
 	if err != nil {
 		spew.Dump(err)
 		// TODO: Handler Error

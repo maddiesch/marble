@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/maddiesch/marble/internal/collection"
+	"github.com/maddiesch/marble/pkg/binding"
 )
 
 const (
@@ -15,7 +16,7 @@ func NativeFunction(count int, fn NativeFunc) *NativeFunctionObject {
 	return &NativeFunctionObject{ArgumentCount: count, Body: fn}
 }
 
-type NativeFunc func(Binding, []Object) (Object, error)
+type NativeFunc func(*binding.Binding[Object], []Object) (Object, error)
 
 type NativeFunctionObject struct {
 	ArgumentCount int

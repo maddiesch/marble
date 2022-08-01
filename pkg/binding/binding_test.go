@@ -17,10 +17,11 @@ func TestBinding(t *testing.T) {
 		b2.Set("bar", "baz", 0)
 		b2.Set("baz", "foo", 0)
 
-		assert.False(t, b1.GetState("bar", true).IsSet())
-		assert.True(t, b2.GetState("foo", true).IsSet())
-		assert.False(t, b2.GetState("foo", true).IsCurrent())
-		assert.False(t, b2.GetState("foo", true).IsMutable())
-		assert.True(t, b2.GetState("bar", true).IsMutable())
+		assert.False(t, b1.GetState("bar", true).IsSet(), "Binding 1 should not have 'bar' set")
+		assert.True(t, b2.GetState("foo", true).IsSet(), "Binding 2 should have 'foo' set")
+		assert.False(t, b2.GetState("foo", false).IsSet(), "Binding 2 should have 'foo' set without recursive searching")
+		assert.False(t, b2.GetState("foo", true).IsCurrent(), "Binding 2 should not have 'foo' as the current frame")
+		assert.False(t, b2.GetState("foo", true).IsMutable(), "Binding 2 should not have 'foo' as a mutable value")
+		assert.True(t, b2.GetState("bar", true).IsMutable(), "Binding 2 should allow 'bar' to be mutated")
 	})
 }

@@ -2,29 +2,34 @@ package evaluator
 
 import (
 	"fmt"
-	"runtime/debug"
 
 	"github.com/maddiesch/marble/internal/collection"
 	"github.com/maddiesch/marble/pkg/ast"
-	"github.com/maddiesch/marble/pkg/env"
+	"github.com/maddiesch/marble/pkg/binding"
 	"github.com/maddiesch/marble/pkg/evaluator/runtime"
+	"github.com/maddiesch/marble/pkg/native"
 	"github.com/maddiesch/marble/pkg/object"
 	"github.com/maddiesch/marble/pkg/object/math"
 )
 
-func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
-	env.PushEval(node)
-	defer env.PopEval()
+func NewBinding() *binding.Binding[object.Object] {
+	b := binding.New[object.Object](nil)
+	native.Bind(b)
+	return b
+}
 
+func Evaluate(b *binding.Binding[object.Object], node ast.Node) (object.Object, error) {
 	switch node := node.(type) {
 	case *ast.Program:
-		return _evalStatementList(env, node.StatementList, false, true)
+		return _evalStatementList(b, node.StatementList, false, true)
 	case *ast.BlockStatement:
-		return _evalStatementList(env, node.StatementList, true, false)
+		return _evalStatementList(b, node.StatementList, true, false)
 	case *ast.ExpressionStatement:
-		return Evaluate(env, node.Expression)
+		return Evaluate(b, node.Expression)
+	case *ast.DoExpression:
+		return _evalStatementList(b, node.Block.StatementList, true, true)
 	case *ast.StatementExpression:
-		return Evaluate(env, node.Statement)
+		return Evaluate(b, node.Statement)
 	case *ast.IntegerExpression:
 		return object.Int(node.Value), nil
 	case *ast.FloatExpression:
@@ -36,37 +41,38 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 	case *ast.NullExpression:
 		return &object.Null{}, nil
 	case *ast.NegateExpression:
-		return _evalNegateExpression(env, node)
+		return _evalNegateExpression(b, node)
 	case *ast.NotExpression:
-		return _evalNotExpression(env, node)
+		return _evalNotExpression(b, node)
 	case *ast.InfixExpression:
-		return _evalInfixExpression(env, node)
+		return _evalInfixExpression(b, node)
 	case *ast.IfExpression:
-		return _evalIfExpression(env, node)
+		return _evalIfExpression(b, node)
 	case *ast.ReturnStatement:
-		return _evalReturnStatement(env, node)
+		return _evalReturnStatement(b, node)
 	case *ast.LetStatement:
-		return _evalAssignmentNode(env, node, false)
+		return _evalAssignmentNode(b, node, false)
 	case *ast.MutateStatement:
-		return _evalAssignmentNode(env, node, true)
+		return _evalAssignmentNode(b, node, true)
 	case *ast.ConstantStatement:
-		return _evalAssignmentNode(env, node, false)
+		return _evalAssignmentNode(b, node, false)
 	case *ast.DeleteStatement:
-		return _evalDeleteStatement(env, node)
+		return _evalDeleteStatement(b, node)
 	case *ast.ArrayExpression:
-		return _evalArrayNode(env, node)
+		return _evalArrayNode(b, node)
 	case *ast.SubscriptExpression:
-		return _evalSubscriptNode(env, node)
+		return _evalSubscriptNode(b, node)
 	case *ast.DefinedExpression:
-		return object.Bool(env.StateFor(node.Identifier.Value, false).Defined()), nil
+		return object.Bool(b.GetState(node.Identifier.Value, false).IsSet()), nil
 	case *ast.WhileExpression:
-		return _evalWhileExpression(env, node)
+		return _evalWhileExpression(b, node)
 	case *ast.BreakStatement:
 		return object.Instruction(object.NativeInstructionBreak), nil
 	case *ast.ContinueStatement:
 		return object.Instruction(object.NativeInstructionContinue), nil
 	case *ast.IdentifierExpression:
-		value, ok := env.Get(node.Value)
+		// TODO: Guard against the possibility of getting a private value that's not in the current scope.
+		value, ok := b.Get(node.Value, true)
 		if !ok {
 			return nil, runtime.NewError(
 				runtime.UnknownIdentifierError,
@@ -77,9 +83,9 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 		}
 		return value, nil
 	case *ast.FunctionExpression:
-		return _evalFunctionExpression(env, node)
+		return _evalFunctionExpression(b, node)
 	case *ast.CallExpression:
-		return _evalCallExpression(env, node)
+		return _evalCallExpression(b, node)
 	default:
 		return nil, runtime.NewError(
 			runtime.InterpreterError,
@@ -90,13 +96,13 @@ func Evaluate(env *env.Env, node ast.Node) (object.Object, error) {
 	}
 }
 
-func _evalWhileExpression(e *env.Env, node *ast.WhileExpression) (object.Object, error) {
+func _evalWhileExpression(b *binding.Binding[object.Object], node *ast.WhileExpression) (object.Object, error) {
 	var result object.Object
 	result = &object.Null{}
 
 EvalLoop:
 	for {
-		condition, err := Evaluate(e, node.Condition)
+		condition, err := Evaluate(b, node.Condition)
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +115,7 @@ EvalLoop:
 			break
 		}
 
-		blockResult, err := _evalStatementList(e, node.Block.StatementList, true, false)
+		blockResult, err := _evalStatementList(b, node.Block.StatementList, true, false)
 		if err != nil {
 			return nil, err
 		}
@@ -132,8 +138,8 @@ EvalLoop:
 	return result, nil
 }
 
-func _evalSubscriptNode(e *env.Env, node *ast.SubscriptExpression) (object.Object, error) {
-	rec, err := Evaluate(e, node.Receiver)
+func _evalSubscriptNode(b *binding.Binding[object.Object], node *ast.SubscriptExpression) (object.Object, error) {
+	rec, err := Evaluate(b, node.Receiver)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +152,7 @@ func _evalSubscriptNode(e *env.Env, node *ast.SubscriptExpression) (object.Objec
 		)
 	}
 
-	val, err := Evaluate(e, node.Value)
+	val, err := Evaluate(b, node.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -154,11 +160,11 @@ func _evalSubscriptNode(e *env.Env, node *ast.SubscriptExpression) (object.Objec
 	return sub.Subscript(val)
 }
 
-func _evalArrayNode(e *env.Env, node *ast.ArrayExpression) (object.Object, error) {
+func _evalArrayNode(b *binding.Binding[object.Object], node *ast.ArrayExpression) (object.Object, error) {
 	array := make([]object.Object, len(node.Elements))
 
 	for i, n := range node.Elements {
-		if v, err := Evaluate(e, n); err != nil {
+		if v, err := Evaluate(b, n); err != nil {
 			return nil, err
 		} else {
 			array[i] = v
@@ -168,7 +174,7 @@ func _evalArrayNode(e *env.Env, node *ast.ArrayExpression) (object.Object, error
 	return object.Array(array), nil
 }
 
-func _evalNativeFunction(e *env.Env, fn *object.NativeFunctionObject, node *ast.CallExpression) (object.Object, error) {
+func _evalNativeFunction(b *binding.Binding[object.Object], fn *object.NativeFunctionObject, node *ast.CallExpression) (object.Object, error) {
 	if len(node.Arguments) != fn.ArgumentCount {
 		return nil, runtime.NewError(runtime.ArgumentError,
 			"Unexpected number of arguments in function call",
@@ -179,33 +185,36 @@ func _evalNativeFunction(e *env.Env, fn *object.NativeFunctionObject, node *ast.
 
 	arguments := make([]object.Object, len(node.Arguments))
 	for i, arg := range node.Arguments {
-		val, err := Evaluate(e, arg)
+		val, err := Evaluate(b, arg)
 		if err != nil {
 			return nil, err
 		}
 		arguments[i] = val
 	}
 
-	e.PushTo(1) // Always push to start frame
-	defer e.Restore()
+	root := b
+	for {
+		p := root.Parent()
+		if p == nil {
+			break
+		}
+		root = p
+	}
 
-	e.Push()
-	defer e.Pop()
-
-	return fn.Body(e, arguments)
+	return fn.Body(binding.New(root), arguments)
 }
 
-func _evalCallExpression(e *env.Env, node *ast.CallExpression) (object.Object, error) {
-	fn, err := Evaluate(e, node.Function)
+func _evalCallExpression(b *binding.Binding[object.Object], node *ast.CallExpression) (object.Object, error) {
+	fn, err := Evaluate(b, node.Function)
 	if err != nil {
 		return nil, err
 	}
 
 	switch closure := fn.(type) {
 	case *object.ClosureLiteral:
-		return _evalCallClosureLiteral(e, closure, node)
+		return _evalCallClosureLiteral(b, closure, node)
 	case *object.NativeFunctionObject:
-		return _evalNativeFunction(e, closure, node)
+		return _evalNativeFunction(b, closure, node)
 	default:
 		return nil, runtime.NewError(runtime.CallError,
 			"Unable to call non-function type",
@@ -214,7 +223,7 @@ func _evalCallExpression(e *env.Env, node *ast.CallExpression) (object.Object, e
 	}
 }
 
-func _evalCallClosureLiteral(e *env.Env, closure *object.ClosureLiteral, node *ast.CallExpression) (object.Object, error) {
+func _evalCallClosureLiteral(b *binding.Binding[object.Object], closure *object.ClosureLiteral, node *ast.CallExpression) (object.Object, error) {
 	if len(node.Arguments) != len(closure.ParameterList) {
 		return nil, runtime.NewError(runtime.ArgumentError,
 			"Unexpected number of arguments in function call",
@@ -228,130 +237,124 @@ func _evalCallClosureLiteral(e *env.Env, closure *object.ClosureLiteral, node *a
 	// So we loop once to evaluate the arguments, push to the closure's frame, then bind the argument values into the frame
 	arguments := make([]object.Object, len(node.Arguments))
 	for i, arg := range node.Arguments {
-		val, err := Evaluate(e, arg)
+		val, err := Evaluate(b, arg)
 		if err != nil {
 			return nil, err
 		}
 		arguments[i] = val
 	}
 
-	if !e.PushTo(closure.FrameID) {
-		fmt.Println(e.DebugString())
-		fmt.Println(node.String())
-		debug.PrintStack()
-		return nil, runtime.NewError(runtime.InterpreterError,
-			"Unable to push to the expected execution state for function call!",
-			runtime.ErrorValue("StackFrame", closure.FrameID),
-		)
-	}
-	defer e.Restore()
-
-	e.Push()
-	defer e.Pop()
+	child := binding.New(closure.Binding)
 
 	for i, val := range arguments {
 		name := closure.ParameterList[i]
-		e.Set(name, val, false)
+		child.Set(name, val, binding.F_CONST|binding.F_PROTECTED)
 	}
 
-	return _evalStatementList(e, closure.Body.StatementList, true, true)
+	return _evalStatementList(child, closure.Body.StatementList, true, true)
 }
 
-func _evalFunctionExpression(e *env.Env, node *ast.FunctionExpression) (*object.ClosureLiteral, error) {
+func _evalFunctionExpression(b *binding.Binding[object.Object], node *ast.FunctionExpression) (*object.ClosureLiteral, error) {
 	parameters := collection.MapSlice(node.Parameters, func(l *ast.IdentifierExpression) string {
 		return l.Value
 	})
-	return object.Closure(parameters, node.BlockStatement, e.CurrentFrame()), nil
+	return object.Closure(parameters, node.BlockStatement, binding.New(b)), nil
 }
 
-func _evalDeleteStatement(e *env.Env, node *ast.DeleteStatement) (object.Object, error) {
+func _evalDeleteStatement(b *binding.Binding[object.Object], node *ast.DeleteStatement) (object.Object, error) {
 	name := node.Identifier.Value
-	state := e.StateFor(name, false)
-	switch state {
-	case env.LabelStateUnassigned:
+
+	value, currentState, _ := b.GetValueState(name, true)
+	if !currentState.IsSet() {
 		return nil, runtime.NewError(runtime.UnknownIdentifierError,
 			"Can't delete an undefined identifier",
 			runtime.ErrorValue("Location", node.SourceToken().Location),
 			runtime.ErrorValue("Label", name),
 		)
-	case env.LabelStateAssignedProtected, env.LabelStateAssignedImmutable:
+	}
+	if !currentState.IsMutable() || currentState.IsProtected() {
 		return nil, runtime.NewError(runtime.ConstantError,
 			"Can't delete a constant identifier",
 			runtime.ErrorValue("Location", node.SourceToken().Location),
 			runtime.ErrorValue("Label", name),
 		)
-	case env.LabelStateAssignedMutable:
-		val, ok := e.Get(name)
-		if !ok {
-			return nil, runtime.NewError(runtime.InterpreterError,
-				"Unable to find an existing value for the label",
-				runtime.ErrorValue("Location", node.SourceToken().Location),
-				runtime.ErrorValue("Label", name),
-			)
-		}
-
-		e.Delete(name, false)
-
-		return val, nil
-	default:
-		panic("there is a state for the environment entry that we weren't expecting. This should not be possible!")
 	}
+
+	if !b.Unset(name, true) {
+		return nil, runtime.NewError(runtime.InterpreterError,
+			"Failed to delete the value for identifier",
+			runtime.ErrorValue("Location", node.SourceToken().Location),
+			runtime.ErrorValue("Label", name),
+		)
+	}
+
+	return value, nil
 }
 
-func _evalAssignmentNode(e *env.Env, node ast.AssignmentStatement, update bool) (object.Object, error) {
+func _evalAssignmentNode(b *binding.Binding[object.Object], node ast.AssignmentStatement, update bool) (object.Object, error) {
 	name := node.Label()
 
-	currentState := e.StateFor(name, node.CurrentFrameOnly())
-
-	if node.RequireDefined() && !currentState.Defined() {
+	currentState := b.GetState(name, !node.CurrentFrameOnly())
+	if node.RequireDefined() && !currentState.IsSet() {
 		return nil, runtime.NewError(runtime.UnknownIdentifierError,
-			"Unable to assing to an undefined variable",
+			"Unable to find identifier in scope",
 			runtime.ErrorValue("Name", name),
 			runtime.ErrorValue("Location", node.SourceToken().Location),
 		)
 	}
 
-	if currentState.Defined() {
-		if !currentState.Mutable() {
-			return nil, runtime.NewError(runtime.ConstantError,
-				"Attempting to assign a new value to a constant",
-				runtime.ErrorValue("Name", name),
-				runtime.ErrorValue("Location", node.SourceToken().Location),
-			)
-		}
-
-		if node.RequireUndefined() {
-			return nil, runtime.NewError(runtime.InterpreterError,
-				"Unable to perform assignment on a defined variable",
-				runtime.ErrorValue("Name", name),
-				runtime.ErrorValue("Location", node.SourceToken().Location),
-			)
-		}
+	if node.RequireDefined() && !currentState.IsSet() {
+		return nil, runtime.NewError(runtime.UnknownIdentifierError,
+			"Identifier undefined in scope",
+			runtime.ErrorValue("Name", name),
+			runtime.ErrorValue("Location", node.SourceToken().Location),
+		)
 	}
 
-	value, err := Evaluate(e, node.AssignmentExpression())
+	if currentState.IsSet() && !currentState.IsMutable() {
+		return nil, runtime.NewError(runtime.ConstantError,
+			"Constant already defined in scope",
+			runtime.ErrorValue("Name", name),
+			runtime.ErrorValue("Location", node.SourceToken().Location),
+		)
+	}
 
+	if currentState.IsSet() && node.RequireUndefined() {
+		return nil, runtime.NewError(runtime.InterpreterError,
+			"Unable to perform assignment on a defined variable",
+			runtime.ErrorValue("Name", name),
+			runtime.ErrorValue("Location", node.SourceToken().Location),
+		)
+	}
+
+	value, err := Evaluate(b, node.AssignmentExpression())
 	if err != nil {
 		return nil, err
 	}
+
 	if update {
-		e.Update(name, value, node.CurrentFrameOnly())
+		_ = b.Update(name, value, !node.CurrentFrameOnly())
 	} else {
-		e.Set(name, value, node.Mutable())
+		var f binding.Flag
+		if !node.Mutable() {
+			f |= binding.F_CONST
+		}
+		_ = b.Set(name, value, f)
 	}
+
 	return value, nil
 }
 
-func _evalReturnStatement(env *env.Env, node *ast.ReturnStatement) (object.Object, error) {
-	val, err := Evaluate(env, node.Expression)
+func _evalReturnStatement(b *binding.Binding[object.Object], node *ast.ReturnStatement) (object.Object, error) {
+	val, err := Evaluate(b, node.Expression)
 	if err != nil {
 		return nil, err
 	}
 	return object.Return(val), nil
 }
 
-func _evalIfExpression(env *env.Env, node *ast.IfExpression) (object.Object, error) {
-	condition, err := Evaluate(env, node.Condition)
+func _evalIfExpression(b *binding.Binding[object.Object], node *ast.IfExpression) (object.Object, error) {
+	condition, err := Evaluate(b, node.Condition)
 	if err != nil {
 		return nil, err
 	}
@@ -362,20 +365,20 @@ func _evalIfExpression(env *env.Env, node *ast.IfExpression) (object.Object, err
 	}
 
 	if boolean.Value {
-		return Evaluate(env, node.TrueStatement)
+		return Evaluate(b, node.TrueStatement)
 	} else if node.FalseStatement != nil {
-		return Evaluate(env, node.FalseStatement)
+		return Evaluate(b, node.FalseStatement)
 	} else {
 		return &object.Null{}, nil
 	}
 }
 
-func _evalInfixExpression(env *env.Env, node *ast.InfixExpression) (object.Object, error) {
-	lhs, err := Evaluate(env, node.Left)
+func _evalInfixExpression(b *binding.Binding[object.Object], node *ast.InfixExpression) (object.Object, error) {
+	lhs, err := Evaluate(b, node.Left)
 	if err != nil {
 		return nil, err
 	}
-	rhs, err := Evaluate(env, node.Right)
+	rhs, err := Evaluate(b, node.Right)
 	if err != nil {
 		return nil, err
 	}
@@ -475,23 +478,23 @@ func _evalBooleanResultInfixExpression(n *ast.InfixExpression, lhs, rhs object.O
 	return object.Bool(eq), nil
 }
 
-func _evalNotExpression(env *env.Env, node *ast.NotExpression) (object.Object, error) {
-	right, err := Evaluate(env, node.Expression)
+func _evalNotExpression(b *binding.Binding[object.Object], node *ast.NotExpression) (object.Object, error) {
+	right, err := Evaluate(b, node.Expression)
 	if err != nil {
 		return nil, err
 	}
 
-	b := new(object.Boolean)
+	bo := new(object.Boolean)
 
-	if err := object.CoerceToType(right, b); err != nil {
+	if err := object.CoerceToType(right, bo); err != nil {
 		return nil, err
 	}
 
-	return object.Bool(!b.Value), nil
+	return object.Bool(!bo.Value), nil
 }
 
-func _evalNegateExpression(env *env.Env, n *ast.NegateExpression) (object.Object, error) {
-	obj, err := Evaluate(env, n.Expression)
+func _evalNegateExpression(b *binding.Binding[object.Object], n *ast.NegateExpression) (object.Object, error) {
+	obj, err := Evaluate(b, n.Expression)
 	if err != nil {
 		return nil, err
 	}
@@ -509,10 +512,9 @@ func _evalNegateExpression(env *env.Env, n *ast.NegateExpression) (object.Object
 // We need to know if we should return the return object or unwrap to the real
 // value. This is so that nested return statements will bubble up to the parent
 // to handle the return statement
-func _evalStatementList(env *env.Env, list []ast.Statement, pushStack, unwrapReturn bool) (object.Object, error) {
+func _evalStatementList(b *binding.Binding[object.Object], list []ast.Statement, pushStack, unwrapReturn bool) (object.Object, error) {
 	if pushStack {
-		env.Push()
-		defer env.Pop()
+		b = binding.New(b)
 	}
 	var result object.Object
 	var err error
@@ -520,7 +522,7 @@ func _evalStatementList(env *env.Env, list []ast.Statement, pushStack, unwrapRet
 	result = &object.Null{}
 
 	for _, node := range list {
-		result, err = Evaluate(env, node)
+		result, err = Evaluate(b, node)
 		if err != nil {
 			return nil, err
 		}

@@ -2,14 +2,29 @@ package evaluator_test
 
 import (
 	"testing"
+	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/maddiesch/marble/internal/test"
 	"github.com/maddiesch/marble/pkg/object"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExecute(t *testing.T) {
+	t.Run("All", func(t *testing.T) {
+		tests := test.TestingTuple2[string, any]{
+			{One: `let count = 1; count = count + 1; count`, Two: int64(2)},
+		}
+
+		tests.Each(func(source string, expected any) {
+			t.Run(source, func(t *testing.T) {
+				result := test.Eval(t, source)
+
+				assert.Equal(t, expected, result.GoValue())
+			})
+		})
+	})
+
 	t.Run("While", func(t *testing.T) {
 		tests := test.TestingTuple2[string, any]{
 			{One: `let count = 0; while (count <= 2) { count = count + 1; }; count`, Two: int64(3)},
@@ -22,7 +37,20 @@ func TestExecute(t *testing.T) {
 
 		tests.Each(func(source string, expected any) {
 			t.Run(source, func(t *testing.T) {
-				result := test.Eval(t, source)
+				done := make(chan struct{})
+				var result object.Object
+
+				go func() {
+					defer close(done)
+
+					result = test.Eval(t, source)
+				}()
+
+				select {
+				case <-time.After(500 * time.Millisecond):
+					require.Fail(t, "Test took too long to execute! Never broke from while loop?")
+				case <-done:
+				}
 
 				assert.Equal(t, expected, result.GoValue())
 			})
@@ -123,6 +151,7 @@ func TestExecute(t *testing.T) {
 		tests := test.TestingTuple2[string, any]{
 			{One: "let a = 1; return a;", Two: int64(1)},
 			{One: "const a = 42; let b = 8; return a;", Two: int64(42)},
+			{One: "let a = 1; do { a = a + 1 }; a", Two: int64(2)},
 		}
 
 		tests.Each(func(source string, expected any) {
@@ -323,6 +352,6 @@ func TestExecuteEdgeCases(t *testing.T) {
 
 		result := test.Eval(t, source)
 
-		spew.Dump(result)
+		assert.Equal(t, true, result.GoValue())
 	})
 }

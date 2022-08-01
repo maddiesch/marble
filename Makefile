@@ -4,7 +4,7 @@ GOLANG_TEST_FLAGS ?= "-v"
 
 .PHONY: test
 test:
-	${GOLANG} test ${GOLANG_TEST_FLAGS} ./...
+	${GOLANG} test ${GOLANG_TEST_FLAGS} ./... -timeout 30s
 
 .PHONY: clean
 clean:

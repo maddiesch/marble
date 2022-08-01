@@ -4,20 +4,21 @@ import (
 	"fmt"
 
 	"github.com/maddiesch/marble/pkg/ast"
+	"github.com/maddiesch/marble/pkg/binding"
 )
 
 const (
 	CLOSURE ObjectType = "OBJ_Closure"
 )
 
-func Closure(parameters []string, body *ast.BlockStatement, frameID uint64) *ClosureLiteral {
-	return &ClosureLiteral{ParameterList: parameters, Body: body, FrameID: frameID}
+func Closure(parameters []string, body *ast.BlockStatement, b *binding.Binding[Object]) *ClosureLiteral {
+	return &ClosureLiteral{ParameterList: parameters, Body: body, Binding: b}
 }
 
 type ClosureLiteral struct {
 	ParameterList []string
 	Body          *ast.BlockStatement
-	FrameID       uint64
+	Binding       *binding.Binding[Object]
 }
 
 func (*ClosureLiteral) Type() ObjectType {
@@ -25,7 +26,7 @@ func (*ClosureLiteral) Type() ObjectType {
 }
 
 func (o *ClosureLiteral) Description() string {
-	return fmt.Sprintf("Closure(%d)", o.FrameID)
+	return fmt.Sprintf("Closure(%d)", o.Binding.ID())
 }
 
 func (*ClosureLiteral) GoValue() any {

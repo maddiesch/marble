@@ -23,7 +23,7 @@ func getNextFrameID() frameID {
 }
 
 func (b *Binding[T]) unsafeSet(k string, v T, f Flag) bool {
-	if _, ok, _ := b.unsafeGet(k, false, 0); !ok {
+	if _, ok, _ := b.unsafeGet(k, false, 0); ok {
 		return false
 	}
 	b.table[k] = &Value[T]{
@@ -50,14 +50,14 @@ func (b *Binding[T]) unsafeGet(k string, r bool, d int) (*Value[T], bool, int) {
 	} else if r && b.parent != nil {
 		return b.parent.unsafeGet(k, r, d+1)
 	} else {
-		return nil, false, -1
+		return nil, false, -(d + 1)
 	}
 }
 
-func (b *Binding[T]) unsafeGetState(k string, r bool) State {
+func (b *Binding[T]) unsafeGetState(k string, r bool) (*Value[T], State) {
 	val, ok, d := b.unsafeGet(k, r, 0)
 	if !ok {
-		return 0
+		return nil, 0
 	}
 	s := S_SET
 
@@ -67,12 +67,23 @@ func (b *Binding[T]) unsafeGetState(k string, r bool) State {
 	if !bit.Has(val.flag, F_CONST) {
 		s |= S_MUTABLE
 	}
-	if !bit.Has(val.flag, F_PRIVATE) {
+	if bit.Has(val.flag, F_PRIVATE) {
 		s |= S_PRIVATE
 	}
-	if !bit.Has(val.flag, F_PROTECTED) {
+	if bit.Has(val.flag, F_PROTECTED) {
 		s |= S_PROTECTED
 	}
 
-	return s
+	return val, s
+}
+
+func (b *Binding[T]) unsafeUnset(k string, r bool) bool {
+	if _, ok := b.table[k]; ok {
+		delete(b.table, k)
+		return true
+	} else if r && b.parent != nil {
+		return b.parent.unsafeUnset(k, r)
+	} else {
+		return false
+	}
 }

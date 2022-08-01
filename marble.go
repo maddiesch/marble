@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/maddiesch/marble/pkg/env"
 	"github.com/maddiesch/marble/pkg/evaluator"
 	"github.com/maddiesch/marble/pkg/lexer"
 	"github.com/maddiesch/marble/pkg/parser"
@@ -48,9 +47,9 @@ func Execute(programName string, source io.Reader, config ...func(*ExecuteOption
 		fmt.Fprintf(os.Stderr, program.String())
 	}
 
-	environment := env.New(options.Stdout, options.Stdout)
+	bind := evaluator.NewBinding()
 
-	result, err := evaluator.Evaluate(environment, program)
+	result, err := evaluator.Evaluate(bind, program)
 	if err != nil {
 		return nil, err
 	}

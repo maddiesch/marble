@@ -54,6 +54,23 @@ func (b *Binding[T]) Get(key string, recursively bool) (T, bool) {
 	}
 }
 
+func (b *Binding[T]) Unset(key string, recursively bool) bool {
+	return b.unsafeUnset(key, recursively)
+}
+
+func (b *Binding[T]) GetValueState(key string, recursively bool) (T, State, bool) {
+	val, state := b.unsafeGetState(key, recursively)
+	if val == nil {
+		var v T
+		return v, state, false
+	}
+	return val.Value, state, true
+}
+
+func (b *Binding[T]) ID() uint64 {
+	return uint64(b.id)
+}
+
 // Print a debug string of the binding's current state
 func (b *Binding[T]) DebugString() string {
 	panic("Binding.DebugString")
@@ -86,7 +103,16 @@ func (s State) IsMutable() bool {
 	return bit.Has(s, S_MUTABLE)
 }
 
+func (s State) IsProtected() bool {
+	return bit.Has(s, S_PROTECTED)
+}
+
 // Returns a value's current state in the binding
 func (b *Binding[T]) GetState(key string, recursively bool) State {
-	return b.unsafeGetState(key, recursively)
+	_, s := b.unsafeGetState(key, recursively)
+	return s
+}
+
+func (b *Binding[T]) Parent() *Binding[T] {
+	return b.parent
 }

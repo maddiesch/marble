@@ -2,12 +2,10 @@ package test
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/maddiesch/marble/internal/collection"
 	"github.com/maddiesch/marble/pkg/ast"
-	"github.com/maddiesch/marble/pkg/env"
 	"github.com/maddiesch/marble/pkg/evaluator"
 	"github.com/maddiesch/marble/pkg/lexer"
 	"github.com/maddiesch/marble/pkg/object"
@@ -18,9 +16,9 @@ import (
 func Eval(t TestingT, source ...string) object.Object {
 	pro := CreateProgram(t, source...)
 
-	e := env.New(os.Stdout, os.Stderr)
+	b := evaluator.NewBinding()
 
-	out, err := evaluator.Evaluate(e, pro)
+	out, err := evaluator.Evaluate(b, pro)
 
 	require.NoError(t, err)
 
