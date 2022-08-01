@@ -354,4 +354,20 @@ func TestExecuteEdgeCases(t *testing.T) {
 
 		assert.Equal(t, true, result.GoValue())
 	})
+
+	t.Run("change value in parent scope after function is defined", func(t *testing.T) {
+		source := `
+		let value = 1;
+
+		const get_value = fn() { value }
+
+		value = 2;
+
+		return value
+		`
+
+		result := test.Eval(t, source)
+
+		assert.Equal(t, int64(2), result.GoValue())
+	})
 }
