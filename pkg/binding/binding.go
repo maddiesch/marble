@@ -30,6 +30,7 @@ func New[T any](parent *Binding[T]) *Binding[T] {
 	}
 }
 
+// NewChild is a helper function that returns a new child of the receiving binding.
 func (b *Binding[T]) NewChild() *Binding[T] {
 	return New(b)
 }
@@ -60,10 +61,23 @@ func (b *Binding[T]) Get(key string, recursively bool) (T, bool) {
 	}
 }
 
-func (b *Binding[T]) Unset(key string, recursively bool) bool {
-	return b.unsafeUnset(key, recursively)
+// UnsetFirst will delete the given key from the binding.
+//
+// If recursively is true, it will walk up the ancestry list until it encounters
+// a binding with the given key. After it finds the key, it will stop.
+//
+// If recursively is false, only the receiving binding will be checked.
+//
+// It returns true if the value was found and deleted.
+func (b *Binding[T]) UnsetFirst(key string, recursively bool) bool {
+	return b.unsafeUnsetFirst(key, recursively)
 }
 
+// GetValueState will return the value and state from the binding.
+//
+// It's the same as calling GetState & Get
+//
+// The return boolean can be ignored if you're using the State IsSet function
 func (b *Binding[T]) GetValueState(key string, recursively bool) (T, State, bool) {
 	val, state := b.unsafeGetState(key, recursively)
 	if val == nil {
@@ -73,6 +87,7 @@ func (b *Binding[T]) GetValueState(key string, recursively bool) (T, State, bool
 	return val.Value, state, true
 }
 
+// Get the receiving binding's identifier
 func (b *Binding[T]) ID() uint64 {
 	return uint64(b.id)
 }
@@ -98,21 +113,23 @@ const (
 	S_CURRENT_FRAME       // The value was found in the first level binding
 )
 
-// The value existing the binding's ancestry
+// The value exists in the binding's ancestry
 func (s State) IsSet() bool {
 	return bit.Has(s, S_SET)
 }
 
-// The value exists in the current level binding, without needing to follow the ancestry
+// The value exists in the current level binding, without needing to follow the
+// ancestry
 func (s State) IsCurrent() bool {
 	return bit.Has(s, S_CURRENT_FRAME)
 }
 
-// IsMutable the value is allowed to be mutated
+// The value is allowed to be mutated
 func (s State) IsMutable() bool {
 	return bit.Has(s, S_MUTABLE)
 }
 
+// The value is in a protected state
 func (s State) IsProtected() bool {
 	return bit.Has(s, S_PROTECTED)
 }
@@ -123,6 +140,7 @@ func (b *Binding[T]) GetState(key string, recursively bool) State {
 	return s
 }
 
+// Returns the binding's parent or nil if it's the root.
 func (b *Binding[T]) Parent() *Binding[T] {
 	return b.parent
 }

@@ -81,12 +81,12 @@ func (b *Binding[T]) unsafeGetState(k string, r bool) (*Value[T], State) {
 	return val, s
 }
 
-func (b *Binding[T]) unsafeUnset(k string, r bool) bool {
+func (b *Binding[T]) unsafeUnsetFirst(k string, r bool) bool {
 	if _, ok := b.table[k]; ok {
 		delete(b.table, k)
 		return true
 	} else if r && b.parent != nil {
-		return b.parent.unsafeUnset(k, r)
+		return b.parent.unsafeUnsetFirst(k, r)
 	} else {
 		return false
 	}

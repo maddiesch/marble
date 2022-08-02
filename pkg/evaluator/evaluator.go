@@ -271,7 +271,7 @@ func _evalDeleteStatement(b *binding.Binding[object.Object], node *ast.DeleteSta
 		)
 	}
 
-	if !b.Unset(name, true) {
+	if !b.UnsetFirst(name, true) {
 		return nil, runtime.NewError(runtime.InterpreterError,
 			"Failed to delete the value for identifier",
 			runtime.ErrorValue("Location", node.SourceToken().Location),
