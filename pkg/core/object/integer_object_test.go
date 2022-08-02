@@ -15,7 +15,7 @@ func TestInteger(t *testing.T) {
 			{One: object.NewInteger(1), Two: object.NewInteger(1), Three: true},
 			{One: object.NewInteger(1), Two: object.NewInteger(3), Three: false},
 			{One: object.NewInteger(1), Two: object.NewFloat(1.0), Three: true},
-			{One: object.NewInteger(1), Two: object.Bool(true), Three: true},
+			{One: object.NewInteger(1), Two: object.NewBool(true), Three: true},
 		}
 
 		for _, tu := range tests {
@@ -35,7 +35,7 @@ func TestInteger(t *testing.T) {
 			{One: object.NewInteger(1), Two: object.NewInteger(0), Three: false},
 			{One: object.NewInteger(1), Two: object.NewInteger(1), Three: false},
 			{One: object.NewInteger(1), Two: object.NewFloat(2.0), Three: true},
-			{One: object.NewInteger(0), Two: object.Bool(true), Three: true},
+			{One: object.NewInteger(0), Two: object.NewBool(true), Three: true},
 		}
 
 		for _, tu := range tests {

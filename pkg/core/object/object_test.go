@@ -11,7 +11,7 @@ import (
 
 func TestObjectType(t *testing.T) {
 	tests := test.TestingTuple2[object.Object, object.ObjectType]{
-		{One: &object.Boolean{}, Two: object.BOOLEAN},
+		{One: object.NewBool(false), Two: object.BOOLEAN},
 		{One: object.NewFloat(1.0), Two: object.FLOAT},
 		{One: object.NewInteger(0), Two: object.INTEGER},
 		{One: object.NewNull(), Two: object.NULL},

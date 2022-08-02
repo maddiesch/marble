@@ -35,7 +35,7 @@ func Evaluate(b *binding.Binding[object.Object], node ast.Node) (object.Object, 
 	case *ast.FloatExpression:
 		return object.NewFloat(node.Value), nil
 	case *ast.BooleanExpression:
-		return object.Bool(node.Value), nil
+		return object.NewBool(node.Value), nil
 	case *ast.StringExpression:
 		return object.NewString(node.Value), nil
 	case *ast.NullExpression:
@@ -63,7 +63,7 @@ func Evaluate(b *binding.Binding[object.Object], node ast.Node) (object.Object, 
 	case *ast.SubscriptExpression:
 		return _evalSubscriptNode(b, node)
 	case *ast.DefinedExpression:
-		return object.Bool(b.GetState(node.Identifier.Value, false).IsSet()), nil
+		return object.NewBool(b.GetState(node.Identifier.Value, false).IsSet()), nil
 	case *ast.WhileExpression:
 		return _evalWhileExpression(b, node)
 	case *ast.BreakStatement:
@@ -111,7 +111,7 @@ EvalLoop:
 			return nil, err
 		}
 
-		if !boolean.(*object.Boolean).Value {
+		if !boolean.(*object.BoolObject).Value {
 			break
 		}
 
@@ -171,7 +171,7 @@ func _evalArrayNode(b *binding.Binding[object.Object], node *ast.ArrayExpression
 		}
 	}
 
-	return object.Array(array), nil
+	return object.NewArray(array), nil
 }
 
 func _evalNativeFunction(b *binding.Binding[object.Object], fn *object.NativeFunctionObject, node *ast.CallExpression) (object.Object, error) {
@@ -202,7 +202,7 @@ func _evalCallExpression(b *binding.Binding[object.Object], node *ast.CallExpres
 	}
 
 	switch closure := fn.(type) {
-	case *object.ClosureLiteral:
+	case *object.ClosureObject:
 		return _evalCallClosureLiteral(b, closure, node)
 	case *object.NativeFunctionObject:
 		return _evalNativeFunction(b, closure, node)
@@ -214,7 +214,7 @@ func _evalCallExpression(b *binding.Binding[object.Object], node *ast.CallExpres
 	}
 }
 
-func _evalCallClosureLiteral(b *binding.Binding[object.Object], closure *object.ClosureLiteral, node *ast.CallExpression) (object.Object, error) {
+func _evalCallClosureLiteral(b *binding.Binding[object.Object], closure *object.ClosureObject, node *ast.CallExpression) (object.Object, error) {
 	if len(node.Arguments) != len(closure.ParameterList) {
 		return nil, runtime.NewError(runtime.ArgumentError,
 			"Unexpected number of arguments in function call",
@@ -245,11 +245,11 @@ func _evalCallClosureLiteral(b *binding.Binding[object.Object], closure *object.
 	return _evalStatementList(child, closure.Body.StatementList, true, true)
 }
 
-func _evalFunctionExpression(b *binding.Binding[object.Object], node *ast.FunctionExpression) (*object.ClosureLiteral, error) {
+func _evalFunctionExpression(b *binding.Binding[object.Object], node *ast.FunctionExpression) (*object.ClosureObject, error) {
 	parameters := collection.MapSlice(node.Parameters, func(l *ast.IdentifierExpression) string {
 		return l.Value
 	})
-	return object.Closure(parameters, node.BlockStatement, b.NewChild()), nil
+	return object.NewClosure(parameters, node.BlockStatement, b.NewChild()), nil
 }
 
 func _evalDeleteStatement(b *binding.Binding[object.Object], node *ast.DeleteStatement) (object.Object, error) {
@@ -350,7 +350,7 @@ func _evalIfExpression(b *binding.Binding[object.Object], node *ast.IfExpression
 		return nil, err
 	}
 
-	boolean := object.Bool(false)
+	boolean := object.NewBool(false)
 	if err := object.CoerceToType(condition, boolean); err != nil {
 		return nil, err
 	}
@@ -431,13 +431,13 @@ func _evalComparisonInfixExpression(n *ast.InfixExpression, lhs, rhs object.Obje
 
 	switch n.Operator {
 	case "<":
-		return object.Bool(lessThan && !equal), nil
+		return object.NewBool(lessThan && !equal), nil
 	case ">":
-		return object.Bool(!lessThan && !equal), nil
+		return object.NewBool(!lessThan && !equal), nil
 	case "<=":
-		return object.Bool(lessThan || equal), nil
+		return object.NewBool(lessThan || equal), nil
 	case ">=":
-		return object.Bool(!lessThan || equal), nil
+		return object.NewBool(!lessThan || equal), nil
 	default:
 		panic("unable to handle the given operator, this is an interpreter error as the operator should not have been passed here!")
 	}
@@ -466,7 +466,7 @@ func _evalBooleanResultInfixExpression(n *ast.InfixExpression, lhs, rhs object.O
 		eq = !eq
 	}
 
-	return object.Bool(eq), nil
+	return object.NewBool(eq), nil
 }
 
 func _evalNotExpression(b *binding.Binding[object.Object], node *ast.NotExpression) (object.Object, error) {
@@ -475,13 +475,13 @@ func _evalNotExpression(b *binding.Binding[object.Object], node *ast.NotExpressi
 		return nil, err
 	}
 
-	bo := new(object.Boolean)
+	bo := object.NewBool(false)
 
 	if err := object.CoerceToType(right, bo); err != nil {
 		return nil, err
 	}
 
-	return object.Bool(!bo.Value), nil
+	return object.NewBool(!bo.Value), nil
 }
 
 func _evalNegateExpression(b *binding.Binding[object.Object], n *ast.NegateExpression) (object.Object, error) {

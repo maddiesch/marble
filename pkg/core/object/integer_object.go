@@ -39,7 +39,7 @@ func (o *IntegerObject) CoerceTo(t ObjectType) (Object, bool) {
 	case FLOAT:
 		return NewFloat(float64(o.Value)), true
 	case BOOLEAN:
-		return Bool(o.Value > 0), true
+		return NewBool(o.Value > 0), true
 	default:
 		return NewVoid(), false
 	}

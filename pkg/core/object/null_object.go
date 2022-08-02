@@ -32,7 +32,7 @@ func (o *NullObject) CoerceTo(t ObjectType) (Object, bool) {
 	case NULL:
 		return o, true
 	case BOOLEAN:
-		return Bool(false), true
+		return NewBool(false), true
 	default:
 		return NewVoid(), false
 	}

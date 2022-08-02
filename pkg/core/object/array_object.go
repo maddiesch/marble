@@ -13,7 +13,7 @@ const (
 	ARRAY ObjectType = "OBJ_Array"
 )
 
-func Array(v []Object) *ArrayObject {
+func NewArray(v []Object) *ArrayObject {
 	return &ArrayObject{Elements: v}
 }
 
@@ -59,7 +59,7 @@ func (s *ArrayObject) Concat(r Object) (Object, error) {
 		return nil, err
 	}
 
-	return Array(append(s.Elements, r.(*ArrayObject).Elements...)), nil
+	return NewArray(append(s.Elements, r.(*ArrayObject).Elements...)), nil
 }
 
 var _ ConcatingEvaluator = (*ArrayObject)(nil)
