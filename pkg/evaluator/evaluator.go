@@ -192,16 +192,7 @@ func _evalNativeFunction(b *binding.Binding[object.Object], fn *object.NativeFun
 		arguments[i] = val
 	}
 
-	root := b
-	for {
-		p := root.Parent()
-		if p == nil {
-			break
-		}
-		root = p
-	}
-
-	return fn.Body(binding.New(root), arguments)
+	return fn.Body(b.NewChild(), arguments)
 }
 
 func _evalCallExpression(b *binding.Binding[object.Object], node *ast.CallExpression) (object.Object, error) {
@@ -244,7 +235,7 @@ func _evalCallClosureLiteral(b *binding.Binding[object.Object], closure *object.
 		arguments[i] = val
 	}
 
-	child := binding.New(closure.Binding)
+	child := closure.Binding.NewChild()
 
 	for i, val := range arguments {
 		name := closure.ParameterList[i]
@@ -258,7 +249,7 @@ func _evalFunctionExpression(b *binding.Binding[object.Object], node *ast.Functi
 	parameters := collection.MapSlice(node.Parameters, func(l *ast.IdentifierExpression) string {
 		return l.Value
 	})
-	return object.Closure(parameters, node.BlockStatement, binding.New(b)), nil
+	return object.Closure(parameters, node.BlockStatement, b.NewChild()), nil
 }
 
 func _evalDeleteStatement(b *binding.Binding[object.Object], node *ast.DeleteStatement) (object.Object, error) {
@@ -514,7 +505,7 @@ func _evalNegateExpression(b *binding.Binding[object.Object], n *ast.NegateExpre
 // to handle the return statement
 func _evalStatementList(b *binding.Binding[object.Object], list []ast.Statement, pushStack, unwrapReturn bool) (object.Object, error) {
 	if pushStack {
-		b = binding.New(b)
+		b = b.NewChild()
 	}
 	var result object.Object
 	var err error

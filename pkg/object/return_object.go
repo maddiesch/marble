@@ -20,8 +20,8 @@ func (*ReturnObject) Type() ObjectType {
 	return RETURN
 }
 
-func (o *ReturnObject) Description() string {
-	return fmt.Sprintf("Return(%s)", o.Value)
+func (o *ReturnObject) DebugString() string {
+	return fmt.Sprintf("Return(%s)", o.Value.DebugString())
 }
 
 func (o *ReturnObject) GoValue() any {
@@ -64,5 +64,5 @@ type ReturnError struct {
 }
 
 func (e ReturnError) Error() string {
-	return fmt.Sprintf("ReturnError: {%s} %s", e.Value.Description(), e.Message)
+	return fmt.Sprintf("ReturnError: {%s} %s", e.Value.DebugString(), e.Message)
 }

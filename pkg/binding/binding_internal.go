@@ -1,17 +1,21 @@
 package binding
 
 import (
+	"fmt"
+	"io"
+	"strings"
 	"sync/atomic"
 
 	"github.com/maddiesch/marble/internal/bit"
+	"github.com/maddiesch/marble/internal/collection"
 )
 
 type valueID uint64
 type frameID uint64
 
 var (
-	_valueID uint64
-	_frameID uint64
+	_valueID uint64 = 0x0000_1000
+	_frameID uint64 = 0x0001_0000
 )
 
 func getNextValID() valueID {
@@ -85,5 +89,19 @@ func (b *Binding[T]) unsafeUnset(k string, r bool) bool {
 		return b.parent.unsafeUnset(k, r)
 	} else {
 		return false
+	}
+}
+
+func (b *Binding[T]) unsafeDebugString(d int, w io.Writer) {
+	prefix := strings.Repeat("\t", d)
+
+	fmt.Fprintf(w, "%sBinding (0x%08x)\n", prefix, b.id)
+
+	for _, key := range collection.SortedKeys(b.table) {
+		fmt.Fprintf(w, "%s\t%s = %s\n", prefix, key, b.table[key].DebugString())
+	}
+
+	if b.parent != nil {
+		b.parent.unsafeDebugString(d+2, w)
 	}
 }

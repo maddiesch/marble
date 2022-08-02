@@ -18,7 +18,7 @@ func (o *Boolean) Type() ObjectType {
 	return BOOLEAN
 }
 
-func (o *Boolean) Description() string {
+func (o *Boolean) DebugString() string {
 	return fmt.Sprintf("Bool(%t)", o.Value)
 }
 

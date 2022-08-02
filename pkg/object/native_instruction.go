@@ -26,7 +26,7 @@ func (*NativeInstruction) Type() ObjectType {
 	return NATIVE_INST
 }
 
-func (o *NativeInstruction) Description() string {
+func (o *NativeInstruction) DebugString() string {
 	return fmt.Sprintf("NativeInstruction(%d)", o.IType)
 }
 

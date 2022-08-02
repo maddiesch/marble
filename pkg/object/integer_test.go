@@ -19,7 +19,7 @@ func TestInteger(t *testing.T) {
 		}
 
 		for _, tu := range tests {
-			t.Run(fmt.Sprintf("%s == %s = %t", tu.One.Description(), tu.Two.Description(), tu.Three), func(t *testing.T) {
+			t.Run(fmt.Sprintf("%s == %s = %t", tu.One.DebugString(), tu.Two.DebugString(), tu.Three), func(t *testing.T) {
 				eq, err := tu.One.PerformEqualityCheck(tu.Two)
 
 				if assert.NoError(t, err, "failed to perform equality check") {
@@ -39,7 +39,7 @@ func TestInteger(t *testing.T) {
 		}
 
 		for _, tu := range tests {
-			t.Run(fmt.Sprintf("%s < %s = %t", tu.One.Description(), tu.Two.Description(), tu.Three), func(t *testing.T) {
+			t.Run(fmt.Sprintf("%s < %s = %t", tu.One.DebugString(), tu.Two.DebugString(), tu.Three), func(t *testing.T) {
 				eq, err := tu.One.PerformLessThanComparison(tu.Two)
 
 				if assert.NoError(t, err, "failed to perform equality check") {

@@ -1,15 +1,17 @@
 package object
 
-import "github.com/maddiesch/marble/pkg/object/math"
+import (
+	"github.com/maddiesch/marble/pkg/debug"
+	"github.com/maddiesch/marble/pkg/object/math"
+)
 
 type Object interface {
 	Coercible
+	debug.Description
 
 	Type() ObjectType
 
 	GoValue() any
-
-	Description() string
 }
 
 type BasicArithmeticEvaluator interface {

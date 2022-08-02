@@ -20,7 +20,7 @@ func (*StringObject) Type() ObjectType {
 	return STRING
 }
 
-func (o *StringObject) Description() string {
+func (o *StringObject) DebugString() string {
 	return fmt.Sprintf("String(%s)", o.Value)
 }
 

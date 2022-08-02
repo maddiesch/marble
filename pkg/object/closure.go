@@ -25,7 +25,7 @@ func (*ClosureLiteral) Type() ObjectType {
 	return CLOSURE
 }
 
-func (o *ClosureLiteral) Description() string {
+func (o *ClosureLiteral) DebugString() string {
 	return fmt.Sprintf("Closure(%d)", o.Binding.ID())
 }
 

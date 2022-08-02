@@ -21,12 +21,12 @@ type ArrayObject struct {
 }
 
 func (*ArrayObject) Type() ObjectType {
-	return STRING
+	return ARRAY
 }
 
-func (o *ArrayObject) Description() string {
+func (o *ArrayObject) DebugString() string {
 	elements := collection.MapSlice(o.Elements, func(e Object) string {
-		return e.Description()
+		return e.DebugString()
 	})
 	return fmt.Sprintf("Array(%s)", strings.Join(elements, ", "))
 }
@@ -44,7 +44,7 @@ func (o *ArrayObject) CoerceTo(t ObjectType) (Object, bool) {
 	}
 }
 
-var _ Object = (*StringObject)(nil)
+var _ Object = (*ArrayObject)(nil)
 
 // MARK: ComparisionEvaluator
 

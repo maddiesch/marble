@@ -12,7 +12,7 @@ func (o *Null) Type() ObjectType {
 	return NULL
 }
 
-func (o *Null) Description() string {
+func (o *Null) DebugString() string {
 	return "Null()"
 }
 

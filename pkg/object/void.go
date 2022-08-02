@@ -12,7 +12,7 @@ func (*Void) Type() ObjectType {
 	return VOID
 }
 
-func (*Void) Description() string {
+func (*Void) DebugString() string {
 	return "void"
 }
 

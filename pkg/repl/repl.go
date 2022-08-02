@@ -106,7 +106,7 @@ func processLine(b *binding.Binding[object.Object], i int, scanner *bufio.Scanne
 	}
 
 	io.WriteString(buf, fmt.Sprintf("$R%d: ", i))
-	io.WriteString(buf, out.Description())
+	io.WriteString(buf, out.DebugString())
 	io.WriteString(buf, "\n")
 
 	return true

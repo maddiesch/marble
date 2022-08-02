@@ -1,6 +1,10 @@
 package native
 
 import (
+	"fmt"
+	"io"
+	"os"
+
 	"github.com/maddiesch/marble/pkg/binding"
 	"github.com/maddiesch/marble/pkg/evaluator/runtime"
 	"github.com/maddiesch/marble/pkg/object"
@@ -8,26 +12,28 @@ import (
 )
 
 var Functions = map[string]*object.NativeFunctionObject{
-	"_marble_version":   object.NativeFunction(0, _marbleVersion),
 	"print_description": object.NativeFunction(1, _printDescription),
 	"len":               object.NativeFunction(1, _len),
+	"marble_dump":       object.NativeFunction(0, _marbleDump),
+}
+
+var Constants = map[string]object.Object{
+	"MARBLE_VERSION": object.String(version.Current),
 }
 
 func Bind(b *binding.Binding[object.Object]) {
 	for k, fn := range Functions {
 		b.Set(k, fn, binding.F_PROTECTED|binding.F_CONST|binding.F_NATIVE)
 	}
+	for k, v := range Constants {
+		b.Set(k, v, binding.F_PROTECTED|binding.F_CONST|binding.F_NATIVE)
+	}
 }
 
 func _printDescription(b *binding.Binding[object.Object], args []object.Object) (object.Object, error) {
-	// TODO: Fix print description
-	// io.WriteString(b.Stderr(), args[0].Description()+"\n")
+	io.WriteString(os.Stdout, args[0].DebugString()+"\n")
 
 	return args[0], nil
-}
-
-func _marbleVersion(*binding.Binding[object.Object], []object.Object) (object.Object, error) {
-	return object.String(version.Current), nil
 }
 
 func _len(_ *binding.Binding[object.Object], args []object.Object) (object.Object, error) {
@@ -36,4 +42,9 @@ func _len(_ *binding.Binding[object.Object], args []object.Object) (object.Objec
 	} else {
 		return nil, runtime.NewError(runtime.ArgumentError, "Given type does not conform to length", runtime.ErrorValue("Type", args[0].Type()))
 	}
+}
+
+func _marbleDump(b *binding.Binding[object.Object], _ []object.Object) (object.Object, error) {
+	fmt.Fprintf(os.Stdout, b.DebugString())
+	return &object.Void{}, nil
 }

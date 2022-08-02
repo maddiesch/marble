@@ -27,7 +27,7 @@ func (*NativeFunctionObject) Type() ObjectType {
 	return NATIVE_FUNC
 }
 
-func (o *NativeFunctionObject) Description() string {
+func (o *NativeFunctionObject) DebugString() string {
 	return fmt.Sprintf("NativeFunc(%s)", strings.Join(collection.MapSlice(make([]string, o.ArgumentCount), func(string) string { return "_" }), ", "))
 }
 

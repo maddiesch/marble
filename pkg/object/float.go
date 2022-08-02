@@ -23,7 +23,7 @@ func (*Floating) Type() ObjectType {
 	return FLOAT
 }
 
-func (o *Floating) Description() string {
+func (o *Floating) DebugString() string {
 	return fmt.Sprintf("Float(%f)", o.Value)
 }
 

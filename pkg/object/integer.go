@@ -23,7 +23,7 @@ func (*Integer) Type() ObjectType {
 	return INTEGER
 }
 
-func (o *Integer) Description() string {
+func (o *Integer) DebugString() string {
 	return fmt.Sprintf("Int(%d)", o.Value)
 }
 

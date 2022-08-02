@@ -2,6 +2,8 @@
 package binding
 
 import (
+	"strings"
+
 	"github.com/maddiesch/marble/internal/bit"
 	"github.com/maddiesch/marble/pkg/debug"
 )
@@ -26,6 +28,10 @@ func New[T any](parent *Binding[T]) *Binding[T] {
 		parent: parent,
 		table:  make(map[string]*Value[T]),
 	}
+}
+
+func (b *Binding[T]) NewChild() *Binding[T] {
+	return New(b)
 }
 
 // Set will update a value in the receiving context
@@ -73,7 +79,11 @@ func (b *Binding[T]) ID() uint64 {
 
 // Print a debug string of the binding's current state
 func (b *Binding[T]) DebugString() string {
-	panic("Binding.DebugString")
+	var builder strings.Builder
+
+	b.unsafeDebugString(0, &builder)
+
+	return builder.String()
 }
 
 // State represents the current state of a value in the binding
