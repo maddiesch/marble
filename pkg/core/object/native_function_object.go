@@ -36,6 +36,7 @@ func (*NativeFunctionObject) GoValue() any {
 	return nil
 }
 
+// TODO: Delete once CastVisitor is complete
 func (*NativeFunctionObject) CoerceTo(t ObjectType) (Object, bool) {
 	return NewVoid(), false
 }

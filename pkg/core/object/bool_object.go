@@ -30,6 +30,7 @@ func (o *BoolObject) GoValue() any {
 	return o.Value
 }
 
+// TODO: Delete once CastVisitor is complete
 func (o *BoolObject) CoerceTo(t ObjectType) (Object, bool) {
 	switch t {
 	case BOOLEAN:

@@ -27,6 +27,7 @@ func (o *NullObject) GoValue() any {
 	return nil
 }
 
+// TODO: Delete once CastVisitor is complete
 func (o *NullObject) CoerceTo(t ObjectType) (Object, bool) {
 	switch t {
 	case NULL:

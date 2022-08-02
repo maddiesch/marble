@@ -1,5 +1,7 @@
 package object
 
+// TODO: Delete once CastVisitor is complete
+
 import "fmt"
 
 type Coercible interface {

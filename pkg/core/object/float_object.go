@@ -12,27 +12,28 @@ const (
 	FLOAT ObjectType = "OBJ_Float"
 )
 
-func NewFloat[T constraints.Float](f T) *FloatingObject {
-	return &FloatingObject{Value: float64(f)}
+func NewFloat[T constraints.Float](f T) *FloatObject {
+	return &FloatObject{Value: float64(f)}
 }
 
-type FloatingObject struct {
+type FloatObject struct {
 	Value float64
 }
 
-func (*FloatingObject) Type() ObjectType {
+func (*FloatObject) Type() ObjectType {
 	return FLOAT
 }
 
-func (o *FloatingObject) DebugString() string {
+func (o *FloatObject) DebugString() string {
 	return fmt.Sprintf("Float(%f)", o.Value)
 }
 
-func (o *FloatingObject) GoValue() any {
+func (o *FloatObject) GoValue() any {
 	return o.Value
 }
 
-func (o *FloatingObject) CoerceTo(t ObjectType) (Object, bool) {
+// TODO: Delete once CastVisitor is complete
+func (o *FloatObject) CoerceTo(t ObjectType) (Object, bool) {
 	switch t {
 	case INTEGER:
 		return NewInteger(int64(o.Value)), true
@@ -43,20 +44,20 @@ func (o *FloatingObject) CoerceTo(t ObjectType) (Object, bool) {
 	}
 }
 
-func (o *FloatingObject) Accept(v visitor.Visitor[Object]) {
+func (o *FloatObject) Accept(v visitor.Visitor[Object]) {
 	v.Visit(o)
 }
 
-var _ Object = (*FloatingObject)(nil)
+var _ Object = (*FloatObject)(nil)
 
 // MARK: BasicArithmeticEvaluator
 
-func (o *FloatingObject) PerformBasicArithmeticOperation(op math.ArithmeticOperator, val Object) (Object, error) {
+func (o *FloatObject) PerformBasicArithmeticOperation(op math.ArithmeticOperator, val Object) (Object, error) {
 	cast, err := CoerceTo(val, FLOAT)
 	if err != nil {
 		return nil, err
 	}
-	right := cast.(*FloatingObject)
+	right := cast.(*FloatObject)
 
 	return NewFloat(math.EvaluateOperation(op, o.Value, right.Value)), nil
 }

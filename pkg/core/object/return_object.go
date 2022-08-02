@@ -30,6 +30,7 @@ func (o *ReturnObject) GoValue() any {
 	return o.Value.GoValue()
 }
 
+// TODO: Delete once CastVisitor is complete
 func (o *ReturnObject) CoerceTo(t ObjectType) (Object, bool) {
 	return o.Value.CoerceTo(t)
 }

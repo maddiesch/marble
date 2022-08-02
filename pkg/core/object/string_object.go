@@ -30,6 +30,7 @@ func (o *StringObject) GoValue() any {
 	return o.Value
 }
 
+// TODO: Delete once CastVisitor is complete
 func (o *StringObject) CoerceTo(t ObjectType) (Object, bool) {
 	switch t {
 	case STRING:

@@ -32,6 +32,7 @@ func (o *IntegerObject) GoValue() any {
 	return o.Value
 }
 
+// TODO: Delete once CastVisitor is complete
 func (o *IntegerObject) CoerceTo(t ObjectType) (Object, bool) {
 	switch t {
 	case INTEGER:

@@ -36,6 +36,7 @@ func (o *ArrayObject) GoValue() any {
 	return o.Elements
 }
 
+// TODO: Delete once CastVisitor is complete
 func (o *ArrayObject) CoerceTo(t ObjectType) (Object, bool) {
 	switch t {
 	case ARRAY:

@@ -28,6 +28,7 @@ func (*VoidObject) GoValue() any {
 	return nil
 }
 
+// TODO: Delete once CastVisitor is complete
 func (o *VoidObject) CoerceTo(t ObjectType) (Object, bool) {
 	return NewVoid(), true
 }

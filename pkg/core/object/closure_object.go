@@ -34,6 +34,7 @@ func (*ClosureObject) GoValue() any {
 	return nil
 }
 
+// TODO: Delete once CastVisitor is complete
 func (*ClosureObject) CoerceTo(t ObjectType) (Object, bool) {
 	return NewVoid(), false
 }
