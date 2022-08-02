@@ -14,28 +14,6 @@ make marble
 ./marble repl
 ```
 
-## Pipeline
-
-### Lexing & Tokenization
-
-Print example tokens to stdout
-
-```bash
-make marble
-
-./marble tokenize ./example.marble
-```
-
-### Parsing
-
-Parse the source file and print the resulting AST to stdout
-
-```bash
-make marble
-
-./marble parse ./example.marble
-```
-
 ### Evaluating
 
 Run the source file through the evaluator
