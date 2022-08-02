@@ -6,12 +6,14 @@ TEST_RUN ?= .
 
 .PHONY: test
 test:
-	${GOLANG} test ${GOLANG_TEST_FLAGS} -run ${TEST_RUN} ./... -timeout ${GOLANG_TEST_TIMEOUT} 2>&1 | tee /tmp/gotest.log | gotestfmt
+	mkdir -p ./tmp
+	${GOLANG} test ${GOLANG_TEST_FLAGS} -run ${TEST_RUN} ./... -timeout ${GOLANG_TEST_TIMEOUT} 2>&1 | tee ./tmp/gotest.log | gotestfmt
 
 .PHONY: clean
 clean:
 	rm -f marble
 	rm -f code-coverage.out
+	rm -rf ./tmp
 	go clean --cache
 
 GO_SOURCE_FILES := $(shell find . -name "*.go" ! -name "*_test.go")
