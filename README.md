@@ -1,6 +1,6 @@
 # Marble Language
 
-An embeddable scripting language.
+An embedded scripting language written in Go.
 
 ## CLI
 
@@ -34,4 +34,14 @@ Parse the source file and print the resulting AST to stdout
 make marble
 
 ./marble parse ./example.marble
+```
+
+### Evaluating
+
+Run the source file through the evaluator
+
+```bash
+make marble
+
+./marble run ./example.marble
 ```
