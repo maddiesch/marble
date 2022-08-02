@@ -31,7 +31,7 @@ debugger: marble
 	dlv exec ./marble parse ./example.marble
 
 code-coverage.out: ${GO_SOURCE_FILES} ${GO_SOURCE_TEST_FILES}
-	GOLANG_TEST_FLAGS="-covermode count -coverprofile $@" ${MAKE} test
+	${GOLANG} test -covermode count -coverprofile $@ ./...
 
 .PHONY: view-coverage
 view-coverage: code-coverage.out
