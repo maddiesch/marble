@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/maddiesch/marble/internal/version"
+	"github.com/maddiesch/marble/pkg/build"
 	"github.com/maddiesch/marble/pkg/core/binding"
 	"github.com/maddiesch/marble/pkg/core/evaluator"
 	"github.com/maddiesch/marble/pkg/core/lexer"
@@ -32,7 +32,7 @@ var Builtin = map[string]func(*binding.Binding[object.Object], io.Writer) bool{
 		return false
 	},
 	HelpCommand: func(_ *binding.Binding[object.Object], out io.Writer) bool {
-		io.WriteString(out, fmt.Sprintf("Marble R.E.P.L. Help (%s)", version.Current))
+		io.WriteString(out, fmt.Sprintf("Marble R.E.P.L. Help (%s)", build.Version))
 		io.WriteString(out, "\n")
 		return true
 	},

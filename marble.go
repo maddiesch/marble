@@ -1,9 +1,7 @@
 package marble
 
 import (
-	"fmt"
 	"io"
-	"os"
 
 	"github.com/maddiesch/marble/pkg/core/evaluator"
 	"github.com/maddiesch/marble/pkg/core/lexer"
@@ -13,46 +11,41 @@ import (
 
 type ExecuteOptions struct {
 	ParserTracing bool
-	PrintAST      bool
-	Stdout        io.Writer
-	Stderr        io.Writer
 }
 
-func Execute(programName string, source io.Reader, config ...func(*ExecuteOptions)) (any, error) {
-	options := ExecuteOptions{
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-	}
+type NamedReader interface {
+	io.Reader
+
+	Name() string
+}
+
+func Execute(sources []NamedReader, config ...func(*ExecuteOptions)) (any, error) {
+	options := ExecuteOptions{}
 
 	for _, config := range config {
 		config(&options)
 	}
 
-	lex, err := lexer.New(programName, source)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create lexer")
+	sourceLexer := lexer.NewLexer()
+
+	for _, reader := range sources {
+		lex, err := lexer.New(reader.Name(), reader)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to create lexer for reader: %s", reader.Name())
+		}
+		sourceLexer.Add(lex)
 	}
 
 	parser.SetTracingEnabled(options.ParserTracing)
 
-	parse := parser.New(lex)
+	parser := parser.New(sourceLexer)
+	program := parser.Run()
 
-	program := parse.Run()
-
-	if err := parse.Err(); err != nil {
-		return nil, err
+	if err := parser.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed to parse the source")
 	}
 
-	if options.PrintAST {
-		fmt.Fprintf(os.Stderr, program.String())
-	}
+	rootBinding := evaluator.NewBinding()
 
-	bind := evaluator.NewBinding()
-
-	result, err := evaluator.Evaluate(bind, program)
-	if err != nil {
-		return nil, err
-	}
-
-	return result.GoValue(), err
+	return evaluator.Evaluate(rootBinding, program)
 }

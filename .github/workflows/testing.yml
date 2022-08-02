@@ -20,7 +20,7 @@ jobs:
       - name: Dependencies
         run: go mod download
       - name: Test
-        run: make test
+        run: go test -v -json -count 1 -timeout 2m ./...
   go-formatting:
     runs-on: ubuntu-latest
     steps:

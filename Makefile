@@ -1,10 +1,12 @@
 GOLANG := go
 
-GOLANG_TEST_FLAGS ?= "-v"
+GOLANG_TEST_FLAGS ?= -json -v
+GOLANG_TEST_TIMEOUT ?= 30s
+TEST_RUN ?= .
 
 .PHONY: test
 test:
-	${GOLANG} test ${GOLANG_TEST_FLAGS} ./... -timeout 30s
+	${GOLANG} test ${GOLANG_TEST_FLAGS} -run ${TEST_RUN} ./... -timeout ${GOLANG_TEST_TIMEOUT} 2>&1 | tee /tmp/gotest.log | gotestfmt
 
 .PHONY: clean
 clean:

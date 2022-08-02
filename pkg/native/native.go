@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/maddiesch/marble/internal/version"
+	"github.com/maddiesch/marble/pkg/build"
 	"github.com/maddiesch/marble/pkg/core/binding"
 	"github.com/maddiesch/marble/pkg/core/evaluator/runtime"
 	"github.com/maddiesch/marble/pkg/core/object"
@@ -18,7 +18,7 @@ var Functions = map[string]*object.NativeFunctionObject{
 }
 
 var Constants = map[string]object.Object{
-	"MARBLE_VERSION": object.String(version.Current),
+	"MARBLE_VERSION": object.String(build.Version),
 }
 
 func Bind(b *binding.Binding[object.Object]) {

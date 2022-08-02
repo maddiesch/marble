@@ -13,11 +13,22 @@ func MapSlice[R any, T any](s []T, fn func(T) R) []R {
 }
 
 func MapSliceI[R any, T any](s []T, fn func(int, T) R) []R {
-	r := make([]R, len(s))
-	for i, v := range s {
-		r[i] = fn(i, v)
-	}
+	r, _ := MapSliceErr(s, func(i int, v T) (R, error) {
+		return fn(i, v), nil
+	})
 	return r
+}
+
+func MapSliceErr[R any, T any](s []T, fn func(int, T) (R, error)) ([]R, error) {
+	r := make([]R, len(s))
+	var err error
+	for i, v := range s {
+		r[i], err = fn(i, v)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return r, nil
 }
 
 func MapMap[R any, K comparable, V any](m map[K]V, fn func(K, V) R) []R {

@@ -1,23 +1,16 @@
 package main
 
 import (
-	"log"
+	"context"
+	"fmt"
 	"os"
 
-	"github.com/urfave/cli/v2"
+	"github.com/maddiesch/marble/cmd/marble/cmd"
 )
 
 func main() {
-	err := App.Run(os.Args)
-	if err != nil {
-		log.Fatal(err)
+	if err := cmd.Marble.ExecuteContext(context.Background()); err != nil {
+		fmt.Fprintf(os.Stderr, "[FATAL] %s\n", err.Error())
+		os.Exit(1)
 	}
-}
-
-var App = cli.App{
-	Name: "marble",
-	Commands: []*cli.Command{
-		CommandRepl,
-		CommandRun,
-	},
 }

@@ -1,7 +1,6 @@
 package marble_test
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,16 +15,13 @@ func TestExampleScript(t *testing.T) {
 	dir, _ := os.Getwd()
 
 	for _, name := range fileNames {
-		path := filepath.Join(dir, name)
-		file, err := os.Open(path)
-		require.NoError(t, err)
-		defer file.Close()
-
 		t.Run(name, func(t *testing.T) {
-			_, err := marble.Execute(name, file, func(o *marble.ExecuteOptions) {
-				o.Stdout = io.Discard
-				o.Stderr = io.Discard
-			})
+			path := filepath.Join(dir, name)
+			file, err := os.Open(path)
+			require.NoError(t, err)
+			defer file.Close()
+
+			_, err = marble.Execute([]marble.NamedReader{marble.NamedReader(file)})
 
 			assert.NoError(t, err)
 		})
