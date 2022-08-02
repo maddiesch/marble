@@ -38,11 +38,6 @@ func (o *NativeInstructionObject) GoValue() any {
 	return nil
 }
 
-// TODO: Delete once CastVisitor is complete
-func (o *NativeInstructionObject) CoerceTo(t ObjectType) (Object, bool) {
-	return nil, false
-}
-
 func (o *NativeInstructionObject) Accept(v visitor.Visitor[Object]) {
 	v.Visit(o)
 }

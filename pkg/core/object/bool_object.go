@@ -30,28 +30,6 @@ func (o *BoolObject) GoValue() any {
 	return o.Value
 }
 
-// TODO: Delete once CastVisitor is complete
-func (o *BoolObject) CoerceTo(t ObjectType) (Object, bool) {
-	switch t {
-	case BOOLEAN:
-		return o, true
-	case INTEGER:
-		if o.Value == true {
-			return NewInteger(1), true
-		} else {
-			return NewInteger(0), true
-		}
-	case FLOAT:
-		if o.Value == true {
-			return NewFloat(1.0), true
-		} else {
-			return NewFloat(0.0), true
-		}
-	default:
-		return NewVoid(), false
-	}
-}
-
 func (o *BoolObject) Accept(v visitor.Visitor[Object]) {
 	v.Visit(o)
 }
@@ -61,12 +39,12 @@ var _ Object = (*BoolObject)(nil)
 // MARK: EqualityEvaluator
 
 func (o *BoolObject) PerformEqualityCheck(r Object) (bool, error) {
-	i, err := CoerceTo(r, BOOLEAN)
+	boolean, err := CastObjectTo(r, BOOLEAN)
 	if err != nil {
-		return false, err
+		panic(err) // TODO: Better Error handling
 	}
 
-	return o.Value == i.(*BoolObject).Value, nil
+	return o.Value == boolean.(*BoolObject).Value, nil
 }
 
 var _ EqualityEvaluator = (*BoolObject)(nil)

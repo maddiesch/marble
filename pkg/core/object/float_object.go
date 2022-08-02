@@ -32,18 +32,6 @@ func (o *FloatObject) GoValue() any {
 	return o.Value
 }
 
-// TODO: Delete once CastVisitor is complete
-func (o *FloatObject) CoerceTo(t ObjectType) (Object, bool) {
-	switch t {
-	case INTEGER:
-		return NewInteger(int64(o.Value)), true
-	case FLOAT:
-		return o, true
-	default:
-		return NewVoid(), false
-	}
-}
-
 func (o *FloatObject) Accept(v visitor.Visitor[Object]) {
 	v.Visit(o)
 }
@@ -53,11 +41,10 @@ var _ Object = (*FloatObject)(nil)
 // MARK: BasicArithmeticEvaluator
 
 func (o *FloatObject) PerformBasicArithmeticOperation(op math.ArithmeticOperator, val Object) (Object, error) {
-	cast, err := CoerceTo(val, FLOAT)
+	float, err := CastObjectTo(val, FLOAT)
 	if err != nil {
-		return nil, err
+		panic(err) // TODO: Better error handling
 	}
-	right := cast.(*FloatObject)
 
-	return NewFloat(math.EvaluateOperation(op, o.Value, right.Value)), nil
+	return NewFloat(math.EvaluateOperation(op, o.Value, float.(*FloatObject).Value)), nil
 }

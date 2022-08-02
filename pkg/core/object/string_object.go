@@ -30,16 +30,6 @@ func (o *StringObject) GoValue() any {
 	return o.Value
 }
 
-// TODO: Delete once CastVisitor is complete
-func (o *StringObject) CoerceTo(t ObjectType) (Object, bool) {
-	switch t {
-	case STRING:
-		return o, true
-	default:
-		return NewVoid(), false
-	}
-}
-
 func (o *StringObject) Accept(v visitor.Visitor[Object]) {
 	v.Visit(o)
 }
@@ -49,32 +39,32 @@ var _ Object = (*StringObject)(nil)
 // MARK: ComparisionEvaluator
 
 func (o *StringObject) PerformEqualityCheck(r Object) (bool, error) {
-	i, err := CoerceTo(r, STRING)
+	str, err := CastObjectTo(r, STRING)
 	if err != nil {
-		return false, err
+		panic(err) // TODO: Better error handling
 	}
 
-	return o.Value == i.(*StringObject).Value, nil
+	return o.Value == str.(*StringObject).Value, nil
 }
 
 func (o *StringObject) PerformLessThanComparison(r Object) (bool, error) {
-	i, err := CoerceTo(r, STRING)
+	str, err := CastObjectTo(r, STRING)
 	if err != nil {
-		return false, err
+		panic(err) // TODO: Better error handling
 	}
 
-	return o.Value < i.(*StringObject).Value, nil
+	return o.Value < str.(*StringObject).Value, nil
 }
 
 var _ ComparisionEvaluator = (*StringObject)(nil)
 
 func (s *StringObject) Concat(r Object) (Object, error) {
-	r, err := CoerceTo(r, STRING)
+	str, err := CastObjectTo(r, STRING)
 	if err != nil {
-		return nil, err
+		panic(err) // TODO: Better error handling
 	}
 
-	return NewString(s.Value + r.(*StringObject).Value), nil
+	return NewString(s.Value + str.(*StringObject).Value), nil
 }
 
 var _ ConcatingEvaluator = (*StringObject)(nil)

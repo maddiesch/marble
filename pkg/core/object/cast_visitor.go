@@ -4,6 +4,12 @@ import (
 	"github.com/maddiesch/marble/pkg/core/visitor"
 )
 
+func CastObjectTo(object Object, target ObjectType) (Object, *ErrorObject) {
+	cast := &CastVisitor{Target: target}
+	object.Accept(cast)
+	return cast.Take()
+}
+
 // CastVisitor handles converting between Object types.
 //
 // Note: The Result is _NOT_ guaranteed to be a new object instance, nor is is

@@ -106,9 +106,10 @@ EvalLoop:
 		if err != nil {
 			return nil, err
 		}
-		boolean, err := object.CoerceTo(condition, object.BOOLEAN)
-		if err != nil {
-			return nil, err
+
+		boolean, errObj := object.CastObjectTo(condition, object.BOOLEAN)
+		if errObj != nil {
+			panic(errObj) // TODO: Better error handling
 		}
 
 		if !boolean.(*object.BoolObject).Value {
@@ -350,12 +351,12 @@ func _evalIfExpression(b *binding.Binding[object.Object], node *ast.IfExpression
 		return nil, err
 	}
 
-	boolean := object.NewBool(false)
-	if err := object.CoerceToType(condition, boolean); err != nil {
-		return nil, err
+	boolean, errObj := object.CastObjectTo(condition, object.BOOLEAN)
+	if errObj != nil {
+		panic(errObj) // TODO: Better error handling
 	}
 
-	if boolean.Value {
+	if boolean.(*object.BoolObject).Value {
 		return Evaluate(b, node.TrueStatement)
 	} else if node.FalseStatement != nil {
 		return Evaluate(b, node.FalseStatement)
@@ -475,13 +476,12 @@ func _evalNotExpression(b *binding.Binding[object.Object], node *ast.NotExpressi
 		return nil, err
 	}
 
-	bo := object.NewBool(false)
-
-	if err := object.CoerceToType(right, bo); err != nil {
-		return nil, err
+	boolean, errObj := object.CastObjectTo(right, object.BOOLEAN)
+	if errObj != nil {
+		panic(errObj) // TODO: Better error handling
 	}
 
-	return object.NewBool(!bo.Value), nil
+	return object.NewBool(!boolean.(*object.BoolObject).Value), nil
 }
 
 func _evalNegateExpression(b *binding.Binding[object.Object], n *ast.NegateExpression) (object.Object, error) {

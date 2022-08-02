@@ -39,16 +39,6 @@ func (o *ErrorObject) GoValue() any {
 	return nil
 }
 
-// TODO: Delete once CastVisitor is complete
-func (o *ErrorObject) CoerceTo(t ObjectType) (Object, bool) {
-	switch t {
-	case ERROR:
-		return o, true
-	default:
-		return NewVoid(), false
-	}
-}
-
 func (o *ErrorObject) Accept(v visitor.Visitor[Object]) {
 	v.Visit(o)
 }

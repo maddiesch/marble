@@ -25,14 +25,3 @@ func TestObjectType(t *testing.T) {
 		})
 	})
 }
-
-func TestChainCoerceTo(t *testing.T) {
-	t.Run("float -> int -> bool", func(t *testing.T) {
-		start := object.NewFloat(1.0)
-
-		b, err := object.ChainCoerceTo(start, object.INTEGER, object.BOOLEAN)
-		if assert.NoError(t, err) {
-			assert.Equal(t, true, b.GoValue())
-		}
-	})
-}

@@ -7,7 +7,6 @@ import (
 )
 
 type Object interface {
-	Coercible
 	debug.Description
 
 	Accept(visitor.Visitor[Object])

@@ -36,16 +36,6 @@ func (o *ArrayObject) GoValue() any {
 	return o.Elements
 }
 
-// TODO: Delete once CastVisitor is complete
-func (o *ArrayObject) CoerceTo(t ObjectType) (Object, bool) {
-	switch t {
-	case ARRAY:
-		return o, true
-	default:
-		return NewVoid(), false
-	}
-}
-
 func (o *ArrayObject) Accept(v visitor.Visitor[Object]) {
 	v.Visit(o)
 }
@@ -55,12 +45,12 @@ var _ Object = (*ArrayObject)(nil)
 // MARK: ComparisionEvaluator
 
 func (s *ArrayObject) Concat(r Object) (Object, error) {
-	r, err := CoerceTo(r, ARRAY)
+	array, err := CastObjectTo(r, ARRAY)
 	if err != nil {
-		return nil, err
+		panic(err) // TODO: Return a valid go error
 	}
 
-	return NewArray(append(s.Elements, r.(*ArrayObject).Elements...)), nil
+	return NewArray(append(s.Elements, array.(*ArrayObject).Elements...)), nil
 }
 
 var _ ConcatingEvaluator = (*ArrayObject)(nil)
@@ -72,7 +62,7 @@ func (o *ArrayObject) Len() int {
 var _ LengthEvaluator = (*ArrayObject)(nil)
 
 func (o *ArrayObject) Subscript(k Object) (Object, error) {
-	index, err := CoerceTo(k, INTEGER)
+	integer, err := CastObjectTo(k, INTEGER)
 	if err != nil {
 		return nil, runtime.NewError(runtime.ArgumentError,
 			"Unable to access array using given argument, must be Int",
@@ -80,7 +70,7 @@ func (o *ArrayObject) Subscript(k Object) (Object, error) {
 			runtime.ErrorValue("Argument", k),
 		)
 	}
-	return o.Elements[int(index.(*IntegerObject).Value)], nil
+	return o.Elements[int(integer.(*IntegerObject).Value)], nil
 }
 
 var _ SubscriptEvaluator = (*ArrayObject)(nil)
