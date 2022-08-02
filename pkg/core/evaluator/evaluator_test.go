@@ -363,7 +363,7 @@ func TestExecuteEdgeCases(t *testing.T) {
 
 		value = 2;
 
-		return value
+		return get_value()
 		`
 
 		result := test.Eval(t, source)
