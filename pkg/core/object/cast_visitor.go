@@ -49,12 +49,17 @@ func (v *CastVisitor) Visit(object Object) {
 }
 
 func (v *CastVisitor) fromReturn(object *ReturnObject) {
-	child := &CastVisitor{Target: v.Target}
+	switch v.Target {
+	case RETURN:
+		v.Result = object
+	default:
+		child := &CastVisitor{Target: v.Target}
 
-	object.Value.Accept(child)
+		object.Value.Accept(child)
 
-	v.Result = child.Result
-	v.Error = child.Error
+		v.Result = child.Result
+		v.Error = child.Error
+	}
 }
 
 func (v *CastVisitor) fromNull(object *NullObject) {

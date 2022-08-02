@@ -7,10 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	Marble.AddCommand(Repl)
-}
-
 var Repl = &cobra.Command{
 	Use:   "repl",
 	Short: "runs the marble repl.",

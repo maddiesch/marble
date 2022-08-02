@@ -3,7 +3,6 @@ package object
 import (
 	"fmt"
 
-	"github.com/maddiesch/marble/pkg/core/object/math"
 	"github.com/maddiesch/marble/pkg/core/visitor"
 	"golang.org/x/exp/constraints"
 )
@@ -37,38 +36,3 @@ func (o *IntegerObject) Accept(v visitor.Visitor[Object]) {
 }
 
 var _ Object = (*IntegerObject)(nil)
-
-// MARK: BasicArithmeticEvaluator
-
-func (o *IntegerObject) PerformBasicArithmeticOperation(op math.ArithmeticOperator, val Object) (Object, error) {
-	integer, err := CastObjectTo(val, INTEGER)
-	if err != nil {
-		panic(err) // TODO: Better error handling
-	}
-
-	return NewInteger(math.EvaluateOperation(op, o.Value, integer.(*IntegerObject).Value)), nil
-}
-
-var _ BasicArithmeticEvaluator = (*IntegerObject)(nil)
-
-// MARK: ComparisionEvaluator
-
-func (o *IntegerObject) PerformEqualityCheck(r Object) (bool, error) {
-	integer, err := CastObjectTo(r, INTEGER)
-	if err != nil {
-		panic(err) // TODO: Better error handling
-	}
-
-	return o.Value == integer.(*IntegerObject).Value, nil
-}
-
-func (o *IntegerObject) PerformLessThanComparison(r Object) (bool, error) {
-	integer, err := CastObjectTo(r, INTEGER)
-	if err != nil {
-		panic(err) // TODO: Better error handling
-	}
-
-	return o.Value < integer.(*IntegerObject).Value, nil
-}
-
-var _ ComparisionEvaluator = (*IntegerObject)(nil)

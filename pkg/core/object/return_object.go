@@ -36,30 +36,6 @@ func (o *ReturnObject) Accept(v visitor.Visitor[Object]) {
 
 var _ Object = (*ReturnObject)(nil)
 
-// MARK: ComparisionEvaluator
-
-func (o *ReturnObject) PerformEqualityCheck(r Object) (bool, error) {
-	if v, ok := o.Value.(EqualityEvaluator); ok {
-		return v.PerformEqualityCheck(r)
-	}
-	return false, ReturnError{
-		Value:   o.Value,
-		Message: "Unable to perform equality check, as the return value object does not implement the equality interface",
-	}
-}
-
-func (o *ReturnObject) PerformLessThanComparison(r Object) (bool, error) {
-	if v, ok := o.Value.(ComparisionEvaluator); ok {
-		return v.PerformLessThanComparison(r)
-	}
-	return false, ReturnError{
-		Value:   o.Value,
-		Message: "Unable to perform equality check, as the return value object does not implement the comparison interface",
-	}
-}
-
-var _ ComparisionEvaluator = (*ReturnObject)(nil)
-
 type ReturnError struct {
 	Value   Object
 	Message string

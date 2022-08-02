@@ -5,10 +5,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/maddiesch/marble/pkg/build"
 	"github.com/maddiesch/marble/pkg/core/binding"
-	"github.com/maddiesch/marble/pkg/core/evaluator/runtime"
 	"github.com/maddiesch/marble/pkg/core/object"
+	"github.com/maddiesch/marble/pkg/version"
 )
 
 var Functions = map[string]*object.NativeFunctionObject{
@@ -18,7 +17,7 @@ var Functions = map[string]*object.NativeFunctionObject{
 }
 
 var Constants = map[string]object.Object{
-	"MARBLE_VERSION": object.NewString(build.Version),
+	"MARBLE_VERSION": object.NewString(version.Current),
 }
 
 func Bind(b *binding.Binding[object.Object]) {
@@ -37,10 +36,10 @@ func _printDescription(b *binding.Binding[object.Object], args []object.Object) 
 }
 
 func _len(_ *binding.Binding[object.Object], args []object.Object) (object.Object, error) {
-	if o, ok := args[0].(object.LengthEvaluator); ok {
-		return object.NewInteger(o.Len()), nil
+	if len, err := object.GetObjectLength(args[0]); err != nil {
+		panic(err) // TODO: Better error handling
 	} else {
-		return nil, runtime.NewError(runtime.ArgumentError, "Given type does not conform to length", runtime.ErrorValue("Type", args[0].Type()))
+		return object.NewInteger(len), nil
 	}
 }
 

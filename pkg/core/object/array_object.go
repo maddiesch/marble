@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/maddiesch/marble/internal/collection"
-	"github.com/maddiesch/marble/pkg/core/evaluator/runtime"
 	"github.com/maddiesch/marble/pkg/core/visitor"
 )
 
@@ -41,36 +40,3 @@ func (o *ArrayObject) Accept(v visitor.Visitor[Object]) {
 }
 
 var _ Object = (*ArrayObject)(nil)
-
-// MARK: ComparisionEvaluator
-
-func (s *ArrayObject) Concat(r Object) (Object, error) {
-	array, err := CastObjectTo(r, ARRAY)
-	if err != nil {
-		panic(err) // TODO: Return a valid go error
-	}
-
-	return NewArray(append(s.Elements, array.(*ArrayObject).Elements...)), nil
-}
-
-var _ ConcatingEvaluator = (*ArrayObject)(nil)
-
-func (o *ArrayObject) Len() int {
-	return len(o.Elements)
-}
-
-var _ LengthEvaluator = (*ArrayObject)(nil)
-
-func (o *ArrayObject) Subscript(k Object) (Object, error) {
-	integer, err := CastObjectTo(k, INTEGER)
-	if err != nil {
-		return nil, runtime.NewError(runtime.ArgumentError,
-			"Unable to access array using given argument, must be Int",
-			runtime.ErrorValue("CoercionError", err),
-			runtime.ErrorValue("Argument", k),
-		)
-	}
-	return o.Elements[int(integer.(*IntegerObject).Value)], nil
-}
-
-var _ SubscriptEvaluator = (*ArrayObject)(nil)

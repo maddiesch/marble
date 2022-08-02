@@ -3,7 +3,6 @@ package object
 import (
 	"fmt"
 
-	"github.com/maddiesch/marble/pkg/core/object/math"
 	"github.com/maddiesch/marble/pkg/core/visitor"
 	"golang.org/x/exp/constraints"
 )
@@ -37,14 +36,3 @@ func (o *FloatObject) Accept(v visitor.Visitor[Object]) {
 }
 
 var _ Object = (*FloatObject)(nil)
-
-// MARK: BasicArithmeticEvaluator
-
-func (o *FloatObject) PerformBasicArithmeticOperation(op math.ArithmeticOperator, val Object) (Object, error) {
-	float, err := CastObjectTo(val, FLOAT)
-	if err != nil {
-		panic(err) // TODO: Better error handling
-	}
-
-	return NewFloat(math.EvaluateOperation(op, o.Value, float.(*FloatObject).Value)), nil
-}

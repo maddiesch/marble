@@ -2,13 +2,13 @@ package evaluator
 
 import (
 	"fmt"
+	"unicode/utf8"
 
 	"github.com/maddiesch/marble/internal/collection"
 	"github.com/maddiesch/marble/pkg/core/ast"
 	"github.com/maddiesch/marble/pkg/core/binding"
 	"github.com/maddiesch/marble/pkg/core/evaluator/runtime"
 	"github.com/maddiesch/marble/pkg/core/object"
-	"github.com/maddiesch/marble/pkg/core/object/math"
 	"github.com/maddiesch/marble/pkg/native"
 )
 
@@ -145,20 +145,17 @@ func _evalSubscriptNode(b *binding.Binding[object.Object], node *ast.SubscriptEx
 		return nil, err
 	}
 
-	sub, ok := rec.(object.SubscriptEvaluator)
-	if !ok {
-		return nil, runtime.NewError(runtime.ArgumentError,
-			"Subscript receiver does not implement subscript accessor",
-			runtime.ErrorValue("Receiver", rec),
-		)
-	}
-
-	val, err := Evaluate(b, node.Value)
+	key, err := Evaluate(b, node.Value)
 	if err != nil {
 		return nil, err
 	}
 
-	return sub.Subscript(val)
+	result, visitErr := object.GetSubscriptValue(rec, key)
+	if visitErr != nil {
+		panic(visitErr)
+	}
+
+	return result, nil
 }
 
 func _evalArrayNode(b *binding.Binding[object.Object], node *ast.ArrayExpression) (object.Object, error) {
@@ -379,18 +376,9 @@ func _evalInfixExpression(b *binding.Binding[object.Object], node *ast.InfixExpr
 }
 
 func _evalInfixOperator(n *ast.InfixExpression, lhs, rhs object.Object) (object.Object, error) {
-	if op, ok := math.OperatorFor(n.Operator); ok {
-		if left, ok := lhs.(object.BasicArithmeticEvaluator); ok {
-			return left.PerformBasicArithmeticOperation(op, rhs)
-		}
-	}
-
-	// Handle Concatenation
-	if lConcat, ok := lhs.(object.ConcatingEvaluator); ok && n.Operator == "+" {
-		return lConcat.Concat(rhs)
-	}
-
 	switch n.Operator {
+	case "+", "-", "*", "/":
+		return _evalArithmeticInfixExpression(n.Operator, lhs, rhs)
 	case "<", "<=", ">", ">=":
 		return _evalComparisonInfixExpression(n, lhs, rhs)
 	case "==", "!=":
@@ -407,27 +395,24 @@ func _evalInfixOperator(n *ast.InfixExpression, lhs, rhs object.Object) (object.
 	}
 }
 
+func _evalArithmeticInfixExpression(op string, lhs, rhs object.Object) (object.Object, error) {
+	opRune, _ := utf8.DecodeRuneInString(op)
+	result, err := object.GetArithmeticResult(opRune, lhs, rhs)
+	if err != nil {
+		panic(err) // TODO: Better error handling
+	}
+	return result, nil
+}
+
 func _evalComparisonInfixExpression(n *ast.InfixExpression, lhs, rhs object.Object) (object.Object, error) {
-	comparable, ok := lhs.(object.ComparisionEvaluator)
-	if !ok {
-		return nil, runtime.NewError(
-			runtime.TypeError,
-			"Unable to perform comparison for the given type",
-			runtime.ErrorValue("Operator", n.Operator),
-			runtime.ErrorValue("Left", lhs),
-			runtime.ErrorValue("Right", rhs),
-			runtime.ErrorValue("Location", n.SourceToken().Location),
-		)
+	lessThan, err := object.GetLessThanComparison(lhs, rhs)
+	if err != nil {
+		panic(err) // TODO: Better error handling
 	}
 
-	lessThan, err := comparable.PerformLessThanComparison(rhs)
+	equal, err := object.GetObjectEquality(lhs, rhs)
 	if err != nil {
-		return nil, err
-	}
-
-	equal, err := comparable.PerformEqualityCheck(rhs)
-	if err != nil {
-		return nil, err
+		panic(err) // TODO: Better error handling
 	}
 
 	switch n.Operator {
@@ -445,29 +430,16 @@ func _evalComparisonInfixExpression(n *ast.InfixExpression, lhs, rhs object.Obje
 }
 
 func _evalBooleanResultInfixExpression(n *ast.InfixExpression, lhs, rhs object.Object) (object.Object, error) {
-	equateable, ok := lhs.(object.EqualityEvaluator)
-	if !ok {
-		return nil, runtime.NewError(
-			runtime.TypeError,
-			"Unable to perform equality check for the given type",
-			runtime.ErrorValue("FailureReason", "Expression left-hand side does not conform to EqualityEvaluator"),
-			runtime.ErrorValue("Operator", n.Operator),
-			runtime.ErrorValue("Left", lhs),
-			runtime.ErrorValue("Right", rhs),
-			runtime.ErrorValue("Location", n.SourceToken().Location),
-		)
-	}
-
-	eq, err := equateable.PerformEqualityCheck(rhs)
+	isEqual, err := object.GetObjectEquality(lhs, rhs)
 	if err != nil {
-		return nil, err
+		panic(err) // TODO: Better error handling
 	}
 
 	if n.Operator == "!=" {
-		eq = !eq
+		isEqual = !isEqual
 	}
 
-	return object.NewBool(eq), nil
+	return object.NewBool(isEqual), nil
 }
 
 func _evalNotExpression(b *binding.Binding[object.Object], node *ast.NotExpression) (object.Object, error) {
@@ -489,15 +461,11 @@ func _evalNegateExpression(b *binding.Binding[object.Object], n *ast.NegateExpre
 	if err != nil {
 		return nil, err
 	}
-	if left, ok := obj.(object.BasicArithmeticEvaluator); ok {
-		return left.PerformBasicArithmeticOperation(math.OperationMultiply, object.NewInteger(-1))
+	result, visitErr := object.GetArithmeticResult('*', obj, object.NewInteger(-1))
+	if visitErr != nil {
+		panic(visitErr) // TODO: Better error handling
 	}
-	return nil, runtime.NewError(
-		runtime.TypeError,
-		"Unable to negate expression",
-		runtime.ErrorValue("Value", obj),
-		runtime.ErrorValue("Node", n),
-	)
+	return result, nil
 }
 
 // We need to know if we should return the return object or unwrap to the real

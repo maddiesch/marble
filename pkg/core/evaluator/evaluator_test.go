@@ -14,6 +14,8 @@ func TestExecute(t *testing.T) {
 	t.Run("All", func(t *testing.T) {
 		tests := test.TestingTuple2[string, any]{
 			{One: `let count = 1; count = count + 1; count`, Two: int64(2)},
+			{One: `let array = [1, 2, "Hello World!"]; len(array);`, Two: int64(3)},
+			{One: `let message = "Hello World!"; len(message);`, Two: int64(12)},
 		}
 
 		tests.Each(func(source string, expected any) {

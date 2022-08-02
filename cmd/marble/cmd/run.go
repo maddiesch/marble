@@ -10,10 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	Marble.AddCommand(Run)
-}
-
 var Run = &cobra.Command{
 	Use:     "run",
 	Short:   "Execute the script",

@@ -35,16 +35,3 @@ func (o *BoolObject) Accept(v visitor.Visitor[Object]) {
 }
 
 var _ Object = (*BoolObject)(nil)
-
-// MARK: EqualityEvaluator
-
-func (o *BoolObject) PerformEqualityCheck(r Object) (bool, error) {
-	boolean, err := CastObjectTo(r, BOOLEAN)
-	if err != nil {
-		panic(err) // TODO: Better Error handling
-	}
-
-	return o.Value == boolean.(*BoolObject).Value, nil
-}
-
-var _ EqualityEvaluator = (*BoolObject)(nil)

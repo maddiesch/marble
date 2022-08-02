@@ -1,13 +1,13 @@
 GOLANG := go
 
-GOLANG_TEST_FLAGS ?= -json -v
+GOLANG_TEST_FLAGS ?= -v
 GOLANG_TEST_TIMEOUT ?= 30s
 TEST_RUN ?= .
 
 .PHONY: test
 test:
 	mkdir -p ./tmp
-	${GOLANG} test ${GOLANG_TEST_FLAGS} -run ${TEST_RUN} ./... -timeout ${GOLANG_TEST_TIMEOUT} 2>&1 | tee ./tmp/gotest.log | gotestfmt
+	${GOLANG} test ${GOLANG_TEST_FLAGS} -run ${TEST_RUN} ./... -timeout ${GOLANG_TEST_TIMEOUT}
 
 .PHONY: clean
 clean:
@@ -15,6 +15,9 @@ clean:
 	rm -f code-coverage.out
 	rm -rf ./tmp
 	go clean --cache
+
+.PHONY: build
+build: marble
 
 GO_SOURCE_FILES := $(shell find . -name "*.go" ! -name "*_test.go")
 GO_SOURCE_TEST_FILES := $(shell find . -name "*_test.go")
