@@ -14,9 +14,7 @@
 
     2) An identifier for the closure
 
-    3) The closure to be called when the calling the closure from the object instance.
-
-      The closure MUST take at least 1 arguments, a `self` that will be the instance of the bound object.
+    3) The closure to be called when the calling the closure from the object instance. The closure MUST take at least 1 arguments, a `self` that will be the instance of the bound object.
 
   Example:
 
@@ -29,8 +27,6 @@
 
   // => Int(7)
   ```
-
-  `const message = "Foo"; bind(message, length, fn(self) { len(self) })`
 
 - Classes
 
