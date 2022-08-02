@@ -2,13 +2,15 @@ package object
 
 import (
 	"fmt"
+
+	"github.com/maddiesch/marble/pkg/core/visitor"
 )
 
 const (
 	STRING ObjectType = "OBJ_String"
 )
 
-func String(s string) *StringObject {
+func NewString(s string) *StringObject {
 	return &StringObject{Value: s}
 }
 
@@ -33,8 +35,12 @@ func (o *StringObject) CoerceTo(t ObjectType) (Object, bool) {
 	case STRING:
 		return o, true
 	default:
-		return &Void{}, false
+		return NewVoid(), false
 	}
+}
+
+func (o *StringObject) Accept(v visitor.Visitor[Object]) {
+	v.Visit(o)
 }
 
 var _ Object = (*StringObject)(nil)
@@ -67,7 +73,7 @@ func (s *StringObject) Concat(r Object) (Object, error) {
 		return nil, err
 	}
 
-	return String(s.Value + r.(*StringObject).Value), nil
+	return NewString(s.Value + r.(*StringObject).Value), nil
 }
 
 var _ ConcatingEvaluator = (*StringObject)(nil)

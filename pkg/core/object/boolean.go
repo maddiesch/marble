@@ -1,6 +1,10 @@
 package object
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/maddiesch/marble/pkg/core/visitor"
+)
 
 const (
 	BOOLEAN ObjectType = "OBJ_Boolean"
@@ -32,19 +36,23 @@ func (o *Boolean) CoerceTo(t ObjectType) (Object, bool) {
 		return o, true
 	case INTEGER:
 		if o.Value == true {
-			return Int(1), true
+			return NewInteger(1), true
 		} else {
-			return Int(0), true
+			return NewInteger(0), true
 		}
 	case FLOAT:
 		if o.Value == true {
-			return Float(1.0), true
+			return NewFloat(1.0), true
 		} else {
-			return Float(0.0), true
+			return NewFloat(0.0), true
 		}
 	default:
-		return &Void{}, false
+		return NewVoid(), false
 	}
+}
+
+func (o *Boolean) Accept(v visitor.Visitor[Object]) {
+	v.Visit(o)
 }
 
 var _ Object = (*Boolean)(nil)

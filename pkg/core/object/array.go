@@ -6,6 +6,7 @@ import (
 
 	"github.com/maddiesch/marble/internal/collection"
 	"github.com/maddiesch/marble/pkg/core/evaluator/runtime"
+	"github.com/maddiesch/marble/pkg/core/visitor"
 )
 
 const (
@@ -40,8 +41,12 @@ func (o *ArrayObject) CoerceTo(t ObjectType) (Object, bool) {
 	case ARRAY:
 		return o, true
 	default:
-		return &Void{}, false
+		return NewVoid(), false
 	}
+}
+
+func (o *ArrayObject) Accept(v visitor.Visitor[Object]) {
+	v.Visit(o)
 }
 
 var _ Object = (*ArrayObject)(nil)
@@ -74,7 +79,7 @@ func (o *ArrayObject) Subscript(k Object) (Object, error) {
 			runtime.ErrorValue("Argument", k),
 		)
 	}
-	return o.Elements[int(index.(*Integer).Value)], nil
+	return o.Elements[int(index.(*IntegerObject).Value)], nil
 }
 
 var _ SubscriptEvaluator = (*ArrayObject)(nil)

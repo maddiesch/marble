@@ -12,13 +12,13 @@ import (
 )
 
 var Functions = map[string]*object.NativeFunctionObject{
-	"print_description": object.NativeFunction(1, _printDescription),
-	"len":               object.NativeFunction(1, _len),
-	"marble_dump":       object.NativeFunction(0, _marbleDump),
+	"print_description": object.NewNativeFunction(1, _printDescription),
+	"len":               object.NewNativeFunction(1, _len),
+	"marble_dump":       object.NewNativeFunction(0, _marbleDump),
 }
 
 var Constants = map[string]object.Object{
-	"MARBLE_VERSION": object.String(build.Version),
+	"MARBLE_VERSION": object.NewString(build.Version),
 }
 
 func Bind(b *binding.Binding[object.Object]) {
@@ -38,7 +38,7 @@ func _printDescription(b *binding.Binding[object.Object], args []object.Object) 
 
 func _len(_ *binding.Binding[object.Object], args []object.Object) (object.Object, error) {
 	if o, ok := args[0].(object.LengthEvaluator); ok {
-		return object.Int(o.Len()), nil
+		return object.NewInteger(o.Len()), nil
 	} else {
 		return nil, runtime.NewError(runtime.ArgumentError, "Given type does not conform to length", runtime.ErrorValue("Type", args[0].Type()))
 	}
@@ -46,5 +46,5 @@ func _len(_ *binding.Binding[object.Object], args []object.Object) (object.Objec
 
 func _marbleDump(b *binding.Binding[object.Object], _ []object.Object) (object.Object, error) {
 	fmt.Fprintf(os.Stdout, b.DebugString())
-	return &object.Void{}, nil
+	return object.NewVoid(), nil
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/maddiesch/marble/pkg/core/ast"
 	"github.com/maddiesch/marble/pkg/core/binding"
+	"github.com/maddiesch/marble/pkg/core/visitor"
 )
 
 const (
@@ -34,7 +35,11 @@ func (*ClosureLiteral) GoValue() any {
 }
 
 func (*ClosureLiteral) CoerceTo(t ObjectType) (Object, bool) {
-	return &Void{}, false
+	return NewVoid(), false
+}
+
+func (o *ClosureLiteral) Accept(v visitor.Visitor[Object]) {
+	v.Visit(o)
 }
 
 var _ Object = (*ClosureLiteral)(nil)

@@ -2,12 +2,15 @@ package object
 
 import (
 	"github.com/maddiesch/marble/pkg/core/object/math"
+	"github.com/maddiesch/marble/pkg/core/visitor"
 	"github.com/maddiesch/marble/pkg/debug"
 )
 
 type Object interface {
 	Coercible
 	debug.Description
+
+	Accept(visitor.Visitor[Object])
 
 	Type() ObjectType
 

@@ -31,15 +31,15 @@ func Evaluate(b *binding.Binding[object.Object], node ast.Node) (object.Object, 
 	case *ast.StatementExpression:
 		return Evaluate(b, node.Statement)
 	case *ast.IntegerExpression:
-		return object.Int(node.Value), nil
+		return object.NewInteger(node.Value), nil
 	case *ast.FloatExpression:
-		return object.Float(node.Value), nil
+		return object.NewFloat(node.Value), nil
 	case *ast.BooleanExpression:
 		return object.Bool(node.Value), nil
 	case *ast.StringExpression:
-		return object.String(node.Value), nil
+		return object.NewString(node.Value), nil
 	case *ast.NullExpression:
-		return &object.Null{}, nil
+		return object.NewNull(), nil
 	case *ast.NegateExpression:
 		return _evalNegateExpression(b, node)
 	case *ast.NotExpression:
@@ -67,9 +67,9 @@ func Evaluate(b *binding.Binding[object.Object], node ast.Node) (object.Object, 
 	case *ast.WhileExpression:
 		return _evalWhileExpression(b, node)
 	case *ast.BreakStatement:
-		return object.Instruction(object.NativeInstructionBreak), nil
+		return object.NewNativeInstruction(object.NativeInstructionBreak), nil
 	case *ast.ContinueStatement:
-		return object.Instruction(object.NativeInstructionContinue), nil
+		return object.NewNativeInstruction(object.NativeInstructionContinue), nil
 	case *ast.IdentifierExpression:
 		// TODO: Guard against the possibility of getting a private value that's not in the current scope.
 		value, ok := b.Get(node.Value, true)
@@ -98,7 +98,7 @@ func Evaluate(b *binding.Binding[object.Object], node ast.Node) (object.Object, 
 
 func _evalWhileExpression(b *binding.Binding[object.Object], node *ast.WhileExpression) (object.Object, error) {
 	var result object.Object
-	result = &object.Null{}
+	result = object.NewNull()
 
 EvalLoop:
 	for {
@@ -123,7 +123,7 @@ EvalLoop:
 		switch r := blockResult.(type) {
 		case *object.ReturnObject:
 			return r.Value, nil
-		case *object.NativeInstruction:
+		case *object.NativeInstructionObject:
 			switch r.IType {
 			case object.NativeInstructionBreak:
 				break EvalLoop
@@ -341,7 +341,7 @@ func _evalReturnStatement(b *binding.Binding[object.Object], node *ast.ReturnSta
 	if err != nil {
 		return nil, err
 	}
-	return object.Return(val), nil
+	return object.NewReturn(val), nil
 }
 
 func _evalIfExpression(b *binding.Binding[object.Object], node *ast.IfExpression) (object.Object, error) {
@@ -360,7 +360,7 @@ func _evalIfExpression(b *binding.Binding[object.Object], node *ast.IfExpression
 	} else if node.FalseStatement != nil {
 		return Evaluate(b, node.FalseStatement)
 	} else {
-		return &object.Null{}, nil
+		return object.NewNull(), nil
 	}
 }
 
@@ -490,7 +490,7 @@ func _evalNegateExpression(b *binding.Binding[object.Object], n *ast.NegateExpre
 		return nil, err
 	}
 	if left, ok := obj.(object.BasicArithmeticEvaluator); ok {
-		return left.PerformBasicArithmeticOperation(math.OperationMultiply, object.Int(-1))
+		return left.PerformBasicArithmeticOperation(math.OperationMultiply, object.NewInteger(-1))
 	}
 	return nil, runtime.NewError(
 		runtime.TypeError,
@@ -510,7 +510,7 @@ func _evalStatementList(b *binding.Binding[object.Object], list []ast.Statement,
 	var result object.Object
 	var err error
 
-	result = &object.Null{}
+	result = object.NewNull()
 
 	for _, node := range list {
 		result, err = Evaluate(b, node)
@@ -525,7 +525,7 @@ func _evalStatementList(b *binding.Binding[object.Object], list []ast.Statement,
 			} else {
 				return r, nil
 			}
-		case *object.NativeInstruction:
+		case *object.NativeInstructionObject:
 			switch r.IType {
 			case object.NativeInstructionBreak, object.NativeInstructionContinue:
 				return r, nil

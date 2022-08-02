@@ -8,8 +8,8 @@ import (
 )
 
 func TestCopyObject(t *testing.T) {
-	start := object.Int(4839)
-	dest := object.Int(0)
+	start := object.NewInteger(4839)
+	dest := object.NewInteger(0)
 
 	t.Run("given a pointer source", func(t *testing.T) {
 		object.CopyObject(start, dest)
