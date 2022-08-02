@@ -10,17 +10,8 @@ const (
 	BOOLEAN ObjectType = "OBJ_Boolean"
 )
 
-var (
-	_boolObjectTrueInstance  = &BoolObject{Value: true}
-	_boolObjectFalseInstance = &BoolObject{Value: false}
-)
-
 func NewBool(v bool) *BoolObject {
-	if v {
-		return _boolObjectTrueInstance
-	} else {
-		return _boolObjectFalseInstance
-	}
+	return &BoolObject{Value: v}
 }
 
 type BoolObject struct {
