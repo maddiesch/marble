@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.com/maddiesch/marble/pkg/ast"
+	"github.com/maddiesch/marble/pkg/core/ast"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

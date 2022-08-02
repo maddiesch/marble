@@ -10,6 +10,7 @@ test:
 clean:
 	rm -f marble
 	rm -f code-coverage.out
+	go clean --cache
 
 GO_SOURCE_FILES := $(shell find . -name "*.go" ! -name "*_test.go")
 GO_SOURCE_TEST_FILES := $(shell find . -name "*_test.go")

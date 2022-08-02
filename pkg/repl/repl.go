@@ -9,12 +9,12 @@ import (
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/maddiesch/marble/pkg/binding"
-	"github.com/maddiesch/marble/pkg/evaluator"
-	"github.com/maddiesch/marble/pkg/lexer"
-	"github.com/maddiesch/marble/pkg/object"
-	"github.com/maddiesch/marble/pkg/parser"
-	"github.com/maddiesch/marble/pkg/version"
+	"github.com/maddiesch/marble/internal/version"
+	"github.com/maddiesch/marble/pkg/core/binding"
+	"github.com/maddiesch/marble/pkg/core/evaluator"
+	"github.com/maddiesch/marble/pkg/core/lexer"
+	"github.com/maddiesch/marble/pkg/core/object"
+	"github.com/maddiesch/marble/pkg/core/parser"
 )
 
 var (

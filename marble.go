@@ -5,9 +5,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/maddiesch/marble/pkg/evaluator"
-	"github.com/maddiesch/marble/pkg/lexer"
-	"github.com/maddiesch/marble/pkg/parser"
+	"github.com/maddiesch/marble/pkg/core/evaluator"
+	"github.com/maddiesch/marble/pkg/core/lexer"
+	"github.com/maddiesch/marble/pkg/core/parser"
 	"github.com/pkg/errors"
 )
 

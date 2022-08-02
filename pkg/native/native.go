@@ -5,10 +5,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/maddiesch/marble/pkg/binding"
-	"github.com/maddiesch/marble/pkg/evaluator/runtime"
-	"github.com/maddiesch/marble/pkg/object"
-	"github.com/maddiesch/marble/pkg/version"
+	"github.com/maddiesch/marble/internal/version"
+	"github.com/maddiesch/marble/pkg/core/binding"
+	"github.com/maddiesch/marble/pkg/core/evaluator/runtime"
+	"github.com/maddiesch/marble/pkg/core/object"
 )
 
 var Functions = map[string]*object.NativeFunctionObject{

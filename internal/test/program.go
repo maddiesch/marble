@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	"github.com/maddiesch/marble/internal/collection"
-	"github.com/maddiesch/marble/pkg/ast"
-	"github.com/maddiesch/marble/pkg/evaluator"
-	"github.com/maddiesch/marble/pkg/lexer"
-	"github.com/maddiesch/marble/pkg/object"
-	"github.com/maddiesch/marble/pkg/parser"
+	"github.com/maddiesch/marble/pkg/core/ast"
+	"github.com/maddiesch/marble/pkg/core/evaluator"
+	"github.com/maddiesch/marble/pkg/core/lexer"
+	"github.com/maddiesch/marble/pkg/core/object"
+	"github.com/maddiesch/marble/pkg/core/parser"
 	"github.com/stretchr/testify/require"
 )
 
