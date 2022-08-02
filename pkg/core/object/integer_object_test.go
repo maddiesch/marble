@@ -11,11 +11,11 @@ import (
 
 func TestInteger(t *testing.T) {
 	t.Run("Equal", func(t *testing.T) {
-		tests := []test.Tuple3[*object.Integer, object.Object, bool]{
-			{One: object.Int(1), Two: object.Int(1), Three: true},
-			{One: object.Int(1), Two: object.Int(3), Three: false},
-			{One: object.Int(1), Two: object.Float(1.0), Three: true},
-			{One: object.Int(1), Two: object.Bool(true), Three: true},
+		tests := []test.Tuple3[*object.IntegerObject, object.Object, bool]{
+			{One: object.NewInteger(1), Two: object.NewInteger(1), Three: true},
+			{One: object.NewInteger(1), Two: object.NewInteger(3), Three: false},
+			{One: object.NewInteger(1), Two: object.NewFloat(1.0), Three: true},
+			{One: object.NewInteger(1), Two: object.NewBool(true), Three: true},
 		}
 
 		for _, tu := range tests {
@@ -30,12 +30,12 @@ func TestInteger(t *testing.T) {
 	})
 
 	t.Run("LessThan", func(t *testing.T) {
-		tests := []test.Tuple3[*object.Integer, object.Object, bool]{
-			{One: object.Int(1), Two: object.Int(2), Three: true},
-			{One: object.Int(1), Two: object.Int(0), Three: false},
-			{One: object.Int(1), Two: object.Int(1), Three: false},
-			{One: object.Int(1), Two: object.Float(2.0), Three: true},
-			{One: object.Int(0), Two: object.Bool(true), Three: true},
+		tests := []test.Tuple3[*object.IntegerObject, object.Object, bool]{
+			{One: object.NewInteger(1), Two: object.NewInteger(2), Three: true},
+			{One: object.NewInteger(1), Two: object.NewInteger(0), Three: false},
+			{One: object.NewInteger(1), Two: object.NewInteger(1), Three: false},
+			{One: object.NewInteger(1), Two: object.NewFloat(2.0), Three: true},
+			{One: object.NewInteger(0), Two: object.NewBool(true), Three: true},
 		}
 
 		for _, tu := range tests {

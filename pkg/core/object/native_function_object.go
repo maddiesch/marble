@@ -6,13 +6,14 @@ import (
 
 	"github.com/maddiesch/marble/internal/collection"
 	"github.com/maddiesch/marble/pkg/core/binding"
+	"github.com/maddiesch/marble/pkg/core/visitor"
 )
 
 const (
 	NATIVE_FUNC ObjectType = "OBJ_NativeClosure"
 )
 
-func NativeFunction(count int, fn NativeFunc) *NativeFunctionObject {
+func NewNativeFunction(count int, fn NativeFunc) *NativeFunctionObject {
 	return &NativeFunctionObject{ArgumentCount: count, Body: fn}
 }
 
@@ -35,8 +36,8 @@ func (*NativeFunctionObject) GoValue() any {
 	return nil
 }
 
-func (*NativeFunctionObject) CoerceTo(t ObjectType) (Object, bool) {
-	return &Void{}, false
+func (o *NativeFunctionObject) Accept(v visitor.Visitor[Object]) {
+	v.Visit(o)
 }
 
 var _ Object = (*NativeFunctionObject)(nil)

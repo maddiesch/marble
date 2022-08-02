@@ -2,13 +2,15 @@ package object
 
 import (
 	"fmt"
+
+	"github.com/maddiesch/marble/pkg/core/visitor"
 )
 
 const (
 	RETURN ObjectType = "OBJ_Return"
 )
 
-func Return(o Object) *ReturnObject {
+func NewReturn(o Object) *ReturnObject {
 	return &ReturnObject{Value: o}
 }
 
@@ -28,8 +30,8 @@ func (o *ReturnObject) GoValue() any {
 	return o.Value.GoValue()
 }
 
-func (o *ReturnObject) CoerceTo(t ObjectType) (Object, bool) {
-	return o.Value.CoerceTo(t)
+func (o *ReturnObject) Accept(v visitor.Visitor[Object]) {
+	v.Visit(o)
 }
 
 var _ Object = (*ReturnObject)(nil)
