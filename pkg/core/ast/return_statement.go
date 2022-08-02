@@ -19,12 +19,13 @@ func (s *ReturnStatement) SourceToken() token.Token {
 func (s *ReturnStatement) String() string {
 	var builder strings.Builder
 
-	builder.WriteString("return")
+	builder.WriteString("RETURN(")
 	if s.Expression != nil {
-		builder.WriteString(" " + s.Expression.String())
+		builder.WriteString(s.Expression.String())
 	} else {
-		builder.WriteString(" <void>")
+		builder.WriteString("<void>")
 	}
+	builder.WriteString(")")
 
 	return builder.String()
 }

@@ -25,7 +25,7 @@ func (e *CallExpression) String() string {
 		return a.String()
 	})
 
-	builder.WriteString("Call(" + e.Function.String() + "(")
+	builder.WriteString("CALL(" + e.Function.String() + "(")
 	builder.WriteString(strings.Join(args, ", ") + "))")
 
 	return builder.String()

@@ -20,13 +20,15 @@ func (e *IfExpression) SourceToken() token.Token {
 func (e *IfExpression) String() string {
 	var builder strings.Builder
 
-	builder.WriteString("if " + e.Condition.String())
+	builder.WriteString("IF(COND(" + e.Condition.String() + ")")
 
-	builder.WriteString(" " + e.TrueStatement.String() + " ")
+	builder.WriteString(", TRUE(" + e.TrueStatement.String() + ")")
 
 	if e.FalseStatement != nil {
-		builder.WriteString(" else " + e.FalseStatement.String() + " ")
+		builder.WriteString(", FALSE(" + e.FalseStatement.String() + ")")
 	}
+
+	builder.WriteString(")")
 
 	return builder.String()
 }

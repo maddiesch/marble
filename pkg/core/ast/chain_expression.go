@@ -18,7 +18,8 @@ func (e *ChainExpression) SourceToken() token.Token {
 
 func (e *ChainExpression) String() string {
 	var builder strings.Builder
-	builder.WriteString("CHAIN(" + e.From.String() + ")->(" + e.To.String() + "))")
+	builder.WriteString("CHAIN(FROM(" + e.From.String() + ")")
+	builder.WriteString(", TO(" + e.To.String() + "))")
 	return builder.String()
 }
 

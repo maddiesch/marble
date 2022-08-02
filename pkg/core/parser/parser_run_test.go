@@ -69,14 +69,6 @@ func TestParserRun(t *testing.T) {
 	})
 
 	t.Run("defined statement", func(t *testing.T) {
-		t.Run("return statement", func(t *testing.T) {
-			pro := createProgramFromSource(t, `return defined foo;`)
-
-			require.Equal(t, 1, len(pro.StatementList))
-
-			assert.Equal(t, `return DEFINED(ID(foo))`, pro.StatementList[0].String())
-		})
-
 		t.Run("top level expression", func(t *testing.T) {
 			pro := createProgramFromSource(t, `defined foo;`)
 
@@ -108,51 +100,34 @@ func TestParserRun(t *testing.T) {
 		}
 	})
 
-	t.Run("parse if statement", func(t *testing.T) {
-		pro := createProgramFromSource(t, `if (foo > 1) { bar }`)
-
-		spew.Dump(pro)
-
-		// TODO: Write Test for If Statement
-	})
-
-	t.Run("parse if else statement", func(t *testing.T) {
-		pro := createProgramFromSource(t, `if (foo > 1) { bar } else { baz }`)
-
-		spew.Dump(pro)
-
-		// TODO: Write Test for If-Else Statement
-	})
-
 	t.Run("operator precedence", func(t *testing.T) {
-		tests := []struct {
-			src      string
-			expected string
-		}{
-			{"true", "Bool(true)"},
-			{"false", "Bool(false)"},
-			{"3 > 5 == false", "((Int(3) > Int(5)) == Bool(false))"},
-			{"3 < 5 == true", "((Int(3) < Int(5)) == Bool(true))"},
-			{"not foo", "NOT(ID(foo))"},
-			{"!foo", "NOT(ID(foo))"},
-			{"-a * b", "(NEG(ID(a)) * ID(b))"},
-			{"5 < 5", "(Int(5) < Int(5))"},
-			{"a + b * c + 3.5 / e - f", "(((ID(a) + (ID(b) * ID(c))) + (Float(3.500000) / ID(e))) - ID(f))"},
-			{"3 + 4 * 5 == 3 * 1 + 4 * 5", "((Int(3) + (Int(4) * Int(5))) == ((Int(3) * Int(1)) + (Int(4) * Int(5))))"},
-			{"1 + (2 + 3) + 4", "((Int(1) + (Int(2) + Int(3))) + Int(4))"},
-			{"(5 + 5) * 2", "((Int(5) + Int(5)) * Int(2))"},
-			{"-(5 + 5)", "NEG((Int(5) + Int(5)))"},
-			{"!(true == true)", "NOT((Bool(true) == Bool(true)))"},
-			{"a * [1, 2, 3, 4][b * c] * d", "((ID(a) * SUBSCRIPT(ARRAY[Int(1), Int(2), Int(3), Int(4)], (ID(b) * ID(c)))) * ID(d))"},
+		tests := test.TestingTuple2[string, string]{
+			{One: "true", Two: "Bool(true)"},
+			{One: "false", Two: "Bool(false)"},
+			{One: "3 > 5 == false", Two: "((Int(3) > Int(5)) == Bool(false))"},
+			{One: "3 < 5 == true", Two: "((Int(3) < Int(5)) == Bool(true))"},
+			{One: "not foo", Two: "NOT(ID(foo))"},
+			{One: "!foo", Two: "NOT(ID(foo))"},
+			{One: "-a * b", Two: "(NEG(ID(a)) * ID(b))"},
+			{One: "5 < 5", Two: "(Int(5) < Int(5))"},
+			{One: "a + b * c + 3.5 / e - f", Two: "(((ID(a) + (ID(b) * ID(c))) + (Float(3.500000) / ID(e))) - ID(f))"},
+			{One: "3 + 4 * 5 == 3 * 1 + 4 * 5", Two: "((Int(3) + (Int(4) * Int(5))) == ((Int(3) * Int(1)) + (Int(4) * Int(5))))"},
+			{One: "1 + (2 + 3) + 4", Two: "((Int(1) + (Int(2) + Int(3))) + Int(4))"},
+			{One: "(5 + 5) * 2", Two: "((Int(5) + Int(5)) * Int(2))"},
+			{One: "-(5 + 5)", Two: "NEG((Int(5) + Int(5)))"},
+			{One: "!(true == true)", Two: "NOT((Bool(true) == Bool(true)))"},
+			{One: "a * [1, 2, 3, 4][b * c] * d", Two: "((ID(a) * SUBSCRIPT(ARRAY[Int(1), Int(2), Int(3), Int(4)], (ID(b) * ID(c)))) * ID(d))"},
 		}
 
-		for _, tc := range tests {
-			pro := createProgramFromSource(t, tc.src)
+		tests.Each(func(source, expected string) {
+			t.Run(source, func(t *testing.T) {
+				pro := createProgramFromSource(t, source)
 
-			if assert.Equal(t, 1, len(pro.StatementList)) {
-				assert.Equal(t, fmt.Sprintf("STMT(%s)", tc.expected), pro.StatementList[0].String(), "Source: %s", tc.src)
-			}
-		}
+				if assert.Equal(t, 1, len(pro.StatementList)) {
+					assert.Equal(t, fmt.Sprintf("STMT(%s)", expected), pro.StatementList[0].String(), "Source: %s", source)
+				}
+			})
+		})
 	})
 
 	t.Run("parse infix operators", func(t *testing.T) {
@@ -242,81 +217,6 @@ func TestParserRun(t *testing.T) {
 
 		letStmt := test.RequireType(t, &ast.MutateStatement{}, prog.StatementList[0])
 		test.AssertIdentifier(t, "foo", letStmt.Identifier)
-	})
-
-	t.Run("parse function", func(t *testing.T) {
-		t.Run("with parameters", func(t *testing.T) {
-			prog := createProgramFromSource(t, `fn(a, b) { return a + b }`)
-
-			spew.Dump(prog)
-
-			// TODO: Write Tests
-		})
-
-		t.Run("without parameters", func(t *testing.T) {
-			prog := createProgramFromSource(t, `fn() { return false }`)
-
-			spew.Dump(prog)
-
-			// TODO: Write Tests
-		})
-	})
-
-	t.Run("parse call", func(t *testing.T) {
-		t.Run("named function", func(t *testing.T) {
-			prog := createProgramFromSource(t, `add(1, 2 * 3, 4 + 5)`)
-
-			spew.Dump(prog)
-
-			// TODO: Write Tests
-		})
-
-		t.Run("inline function", func(t *testing.T) {
-			prog := createProgramFromSource(t, `fn(a, b, c) { return a + b + c }(1, 2 * 3, 4 + 5)`)
-
-			spew.Dump(prog)
-
-			// TODO: Write Tests
-		})
-	})
-
-	t.Run("parse doublecolon", func(t *testing.T) {
-		prog := createProgramFromSource(t, `std::format("{}", "foo")`)
-
-		spew.Dump(prog)
-
-		// TODO: Write Tests
-	})
-
-	t.Run("parse period", func(t *testing.T) {
-		prog := createProgramFromSource(t, `foo.bar.baz()`)
-
-		spew.Dump(prog)
-
-		// TODO: Write Tests
-	})
-
-	t.Run("parse do statement", func(t *testing.T) {
-		t.Run("top level", func(t *testing.T) {
-			prog := createProgramFromSource(t, `do { let foo = "test"; }`)
-
-			spew.Dump(prog)
-
-			// TODO: Write Tests
-		})
-
-		t.Run("in function", func(t *testing.T) {
-			prog := createProgramFromSource(t, `
-				fn() {
-					do { let foo = "test" }
-					let bar = 1
-				}
-			`)
-
-			spew.Dump(prog)
-
-			// TODO: Write Tests
-		})
 	})
 
 	t.Run("parse assignment after non-semicolon if", func(t *testing.T) {

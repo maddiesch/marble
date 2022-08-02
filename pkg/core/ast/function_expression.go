@@ -24,7 +24,7 @@ func (e *FunctionExpression) String() string {
 		return e.String()
 	})
 
-	builder.WriteString("fn(" + strings.Join(params, ", ") + ")")
+	builder.WriteString("FUNC(" + strings.Join(params, ", ") + ")")
 	builder.WriteString(" " + e.BlockStatement.String())
 
 	return builder.String()

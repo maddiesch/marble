@@ -18,7 +18,10 @@ func (e *ModuleExpression) SourceToken() token.Token {
 
 func (e *ModuleExpression) String() string {
 	var builder strings.Builder
-	builder.WriteString("MOD(" + e.Module.String() + ")->(" + e.Expression.String() + "))")
+	builder.WriteString("MOD(")
+	builder.WriteString("NAME(" + e.Module.String() + ")")
+	builder.WriteString(", TARGET(" + e.Expression.String() + ")")
+	builder.WriteString(")")
 	return builder.String()
 }
 

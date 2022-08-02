@@ -15,7 +15,7 @@ func (e *NullExpression) SourceToken() token.Token {
 }
 
 func (e *NullExpression) String() string {
-	return fmt.Sprintf("Null()")
+	return fmt.Sprintf("NULL()")
 }
 
 func (b *NullExpression) MarshalJSON() ([]byte, error) {
